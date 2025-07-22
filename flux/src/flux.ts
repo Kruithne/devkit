@@ -27,19 +27,19 @@ export function form_render_html(schema: FormSchema) {
 		const unique_field_id = `${schema.id}-${field_id}`;
 		const $label = $form.child('label')
 			.attr('for', unique_field_id)
-			.attr('class', 'fx-field');
+			.cls('fx-field');
 
 		if (field.label) {
 			$label.child('span')
-				.attr('class', 'fx-label')
+				.cls('fx-label')
 				.text(field.label);
 		}
 
 		const $input = $label.child('input')
 			.attr('type', field.type)
 			.attr('id', unique_field_id)
-			.attr('class', `fx-input-${field.type}`)
-			.attr('tabindex', tab_index.toString());
+			.attr('tabindex', tab_index.toString())
+			.cls('fx-input', `fx-input-${field.type}`);
 
 		tab_index++;
 
