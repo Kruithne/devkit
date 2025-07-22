@@ -81,9 +81,10 @@ export function form_component($container) {
 					
 					if (data.field_errors) {
 						for (const field_id in data.field_errors) {
-							if (this.state[field_id]) {
-								this.state[field_id].has_error = true;
-								this.state[field_id].error = resolve_error_message(data.field_errors[field_id]);
+							const state = this.state[field_id];
+							if (state) {
+								state.has_error = true;
+								state.error = resolve_error_message(data.field_errors[field_id]);
 							}
 						}
 					}
