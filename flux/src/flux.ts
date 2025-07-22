@@ -18,6 +18,8 @@ type FormField = {
 	label?: string;
 	min?: number;
 	max?: number;
+	min_length?: number;
+	max_length?: number;
 	placeholder?: string;
 	errors?: ErrorMap
 };
@@ -144,6 +146,12 @@ export function form_render_html(schema: FormSchema): string {
 		
 		if (field.max !== undefined)
 			$label.attr('fx-v-max', field.max.toString());
+
+		if (field.min_length !== undefined)
+			$label.attr('fx-v-min-length', field.min_length.toString());
+
+		if (field.max_length !== undefined)
+			$label.attr('fx-v-max-length', field.max_length.toString());
 
 		if (field.label) {
 			$label.child('span')

@@ -138,11 +138,12 @@ export function form_component($container) {
 				state.error = '';		
 
 				const value = $input.value;
-				const min = $field.getAttribute('fx-v-min');
-				const max = $field.getAttribute('fx-v-max');
 				const input_type = $input.getAttribute('type');
 				
 				if (input_type === 'number') {
+					const min = $field.getAttribute('fx-v-min');
+					const max = $field.getAttribute('fx-v-max');
+
 					const num_value = parseFloat(value);
 					if (isNaN(num_value) && value !== '') {
 						state.has_error = true;
@@ -163,6 +164,9 @@ export function form_component($container) {
 						return;
 					}
 				} else {
+					const min = $field.getAttribute('fx-v-min-length');
+					const max = $field.getAttribute('fx-v-max-length');
+
 					if (min !== null && value.length < parseInt(min)) {
 						state.has_error = true;
 						state.error = this.resolve_error_message({ err: 'string_too_small', params: { min } }, field_id);

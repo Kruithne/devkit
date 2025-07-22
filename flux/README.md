@@ -18,7 +18,7 @@ const test_form = form_create_schema({
 	fields: {
 		name: {
 			type: 'text',
-			max: 100
+			max_length: 100
 		},
 
 		age: {
@@ -84,8 +84,8 @@ form_auto_components(): Record<string, VueComponent>
 	fields: {
 		text_field: {
 			type: 'text' | 'password';
-			min: number;
-			max: number;
+			min_length: number;
+			max_length: number;
 		},
 
 		number_field: {
