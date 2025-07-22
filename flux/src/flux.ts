@@ -9,7 +9,7 @@ const default_error_messages = {
 	text_too_small: 'Must be at least {min} characters',
 	text_too_large: 'Must not exceed {max} characters'
 };
-
+type ErrorCode = typeof default_error_messages[number];
 type ErrorCode = keyof typeof default_error_messages;
 type ErrorMap = Partial<Record<ErrorCode, string>>;
 
