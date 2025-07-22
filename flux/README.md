@@ -1,0 +1,45 @@
+# flux &middot; ![typescript](https://img.shields.io/badge/language-typescript-blue) [![license badge](https://img.shields.io/github/license/Kruithne/devkit?color=yellow)](LICENSE)
+
+`flux` is a dynamic server ↔ client form system.
+
+It provides reactive HTML form rendering from server-side schema with input validation and interface feedback.
+
+## Usage
+
+Define schema on server:
+```ts
+const test_form = form_create_schema({
+	id: 'test-form',
+	fields: {
+		name: {
+			type: 'text',
+			max: 100
+		},
+
+		age: {
+			type: 'number',
+			min: 18,
+			max: 99
+		}
+	}
+});
+```
+
+Render form as HTML:
+```ts
+server.route('/form', () => {
+	return form_render_html(test_form);
+});
+```
+
+Validate form in endpoint:
+```ts
+server.json('/api/submit-form', (req, url, json) => {
+	const form = form_validate_req(test_form, json);
+
+	if (form.error)
+		return form.error;
+
+	form.fields.name; // validation + typing
+});
+```

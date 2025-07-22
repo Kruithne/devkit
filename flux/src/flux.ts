@@ -1,0 +1,49 @@
+import { element } from '../../weave/src/weave';
+
+type FormField = {
+	type: 'text' | 'number' | 'password';
+	label?: string;
+	min?: number;
+	max?: number;
+	placeholder?: string;
+};
+
+type FormSchema = {
+	id: string;
+	fields: Record<string, FormField>;
+};
+
+export function form_create_schema(schema: FormSchema): FormSchema {
+	return schema;
+}
+
+export function form_render_html(schema: FormSchema) {
+	const $form = element('form')
+		.attr('id', schema.id)
+		.attr('class', 'fx-form');
+
+	for (const [field_id, field] of Object.entries(schema.fields)) {
+		const $label = $form.child('label')
+			.attr('for', field_id);
+
+		if (field.label) {
+			$label.child('span')
+				.attr('class', 'fx-label')
+				.text(field.label);
+		}
+
+		const input_class = `fx-input-${field.type}`;
+		const $input = $label.child('input')
+			.attr('type', field.type)
+			.attr('id', field_id)
+			.attr('class', input_class);
+
+		if (field.max !== undefined)
+			$input.attr('maxlength', field.max.toString());
+
+		if (field.placeholder)
+			$input.attr('placeholder', field.placeholder);
+	}
+
+	return $form.toString();
+}
