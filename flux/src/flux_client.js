@@ -39,10 +39,47 @@ export function form_component($container) {
 				state.has_error = false;
 				state.error = '';		
 
-				if ($input.value !== 'test') {
-					$field.classList.add('fx-error');
-					state.has_error = true;
-					state.error = 'User did not write test';
+				const value = $input.value;
+				const min_attr = $field.getAttribute('fx-v-min');
+				const max_attr = $field.getAttribute('fx-v-max');
+				const input_type = $input.getAttribute('type');
+				
+				if (input_type === 'number') {
+					const num_value = parseFloat(value);
+					if (isNaN(num_value) && value !== '') {
+						$field.classList.add('fx-error');
+						state.has_error = true;
+						state.error = 'Must be a valid number';
+						return;
+					}
+					
+					if (min_attr !== null && num_value < parseFloat(min_attr)) {
+						$field.classList.add('fx-error');
+						state.has_error = true;
+						state.error = `Must be at least ${min_attr}`;
+						return;
+					}
+					
+					if (max_attr !== null && num_value > parseFloat(max_attr)) {
+						$field.classList.add('fx-error');
+						state.has_error = true;
+						state.error = `Must be no more than ${max_attr}`;
+						return;
+					}
+				} else {
+					if (min_attr !== null && value.length < parseInt(min_attr)) {
+						$field.classList.add('fx-error');
+						state.has_error = true;
+						state.error = `Must be at least ${min_attr} characters`;
+						return;
+					}
+					
+					if (max_attr !== null && value.length > parseInt(max_attr)) {
+						$field.classList.add('fx-error');
+						state.has_error = true;
+						state.error = `Must be no more than ${max_attr} characters`;
+						return;
+					}
 				}
 			}
 		}

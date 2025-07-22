@@ -33,6 +33,12 @@ export function form_render_html(schema: FormSchema) {
 			.attr('data-fx-field-id', field_id)
 			.cls('fx-field');
 
+		if (field.min !== undefined)
+			$label.attr('fx-v-min', field.min.toString());
+		
+		if (field.max !== undefined)
+			$label.attr('fx-v-max', field.max.toString());
+
 		if (field.label) {
 			$label.child('span')
 				.cls('fx-label')
