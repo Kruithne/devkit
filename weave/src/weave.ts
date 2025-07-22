@@ -83,6 +83,6 @@ class WeaveElement {
 	}
 }
 
-function element(tag: string): WeaveElement {
+export function element(tag: string): WeaveElement {
 	return new WeaveElement(tag);
 }
