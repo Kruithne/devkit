@@ -1,16 +1,15 @@
 import { element } from '../../weave/src/weave';
 
-const default_error_messages = {
-	required: 'This field is required',
-	invalid_number: 'Must be a valid number',
-	number_too_small: 'Must be at least {min}',
-	number_too_large: 'Must be no more than {max}',
-	// todo: dual range error
-	text_too_small: 'Must be at least {min} characters',
-	text_too_large: 'Must not exceed {max} characters'
-};
+const default_error_messages = [
+	'required',
+	'invalid_number',
+	'number_too_small',
+	'number_too_large',
+	'text_too_small',
+	'text_too_large'
+] as const;
+
 type ErrorCode = typeof default_error_messages[number];
-type ErrorCode = keyof typeof default_error_messages;
 type ErrorMap = Partial<Record<ErrorCode, string>>;
 
 type FormField = 
@@ -85,13 +84,13 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 		} else {
 			const str_value = String(value).trim();
 
-			if (field.min !== undefined && str_value.length < field.min) {
-				field_errors[uid] = { err: 'text_too_small', params: { min: field.min } };
+			if (field.min_length !== undefined && str_value.length < field.min_length) {
+				field_errors[uid] = { err: 'text_too_small', params: { min: field.min_length } };
 				continue;
 			}
 
-			if (field.max !== undefined && str_value.length > field.max) {
-				field_errors[uid] = { err: 'text_too_large', params: { max: field.max } };
+			if (field.max_length !== undefined && str_value.length > field.max_length) {
+				field_errors[uid] = { err: 'text_too_large', params: { max: field.max_length } };
 				continue;
 			}
 		}
@@ -148,17 +147,19 @@ export function form_render_html(schema: FormSchema): string {
 			.attr(':class', `{ 'fx-error': state['${unique_field_id}'].has_error }`)
 			.cls('fx-field');
 
-		if (field.min !== undefined)
-			$label.attr('fx-v-min', field.min.toString());
-		
-		if (field.max !== undefined)
-			$label.attr('fx-v-max', field.max.toString());
+		if (field.type === 'number') {
+			if (field.min !== undefined)
+				$label.attr('fx-v-min', field.min.toString());
+			
+			if (field.max !== undefined)
+				$label.attr('fx-v-max', field.max.toString());
+		} else {
+			if (field.min_length !== undefined)
+				$label.attr('fx-v-min-length', field.min_length.toString());
 
-		if (field.min_length !== undefined)
-			$label.attr('fx-v-min-length', field.min_length.toString());
-
-		if (field.max_length !== undefined)
-			$label.attr('fx-v-max-length', field.max_length.toString());
+			if (field.max_length !== undefined)
+				$label.attr('fx-v-max-length', field.max_length.toString());
+		}
 
 		if (field.label) {
 			$label.child('span')
@@ -181,8 +182,8 @@ export function form_render_html(schema: FormSchema): string {
 
 		tab_index++;
 
-		if (field.max !== undefined)
-			$input.attr('maxlength', field.max.toString());
+		if (field.type !== 'number' && field.max_length !== undefined)
+			$input.attr('maxlength', field.max_length.toString());
 
 		if (field.placeholder)
 			$input.attr('placeholder', field.placeholder);
