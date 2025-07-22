@@ -10,17 +10,76 @@ type FormField = {
 
 type FormSchema = {
 	id: string;
+	endpoint: string;
 	fields: Record<string, FormField>;
+};
+
+type ValidationResult = {
+	error: string;
+	field_errors: Record<string, string>;
 };
 
 export function form_create_schema(schema: FormSchema): FormSchema {
 	return schema;
 }
 
+export function form_validate_req(schema: FormSchema, json: Record<string, any>): ValidationResult | true {
+	const field_errors: Record<string, string> = {};
+
+	for (const [field_id, field] of Object.entries(schema.fields)) {
+		const value = json[field_id];
+
+		if (value === undefined || value === null || value === '') {
+			field_errors[field_id] = 'This field is required';
+			continue;
+		}
+
+		if (field.type === 'number') {
+			const num_value = Number(value);
+			if (isNaN(num_value)) {
+				field_errors[field_id] = 'Must be a valid number';
+				continue;
+			}
+
+			if (field.min !== undefined && num_value < field.min) {
+				field_errors[field_id] = `Must be at least ${field.min}`;
+				continue;
+			}
+
+			if (field.max !== undefined && num_value > field.max) {
+				field_errors[field_id] = `Must be no more than ${field.max}`;
+				continue;
+			}
+		} else {
+			const str_value = String(value).trim();
+
+			if (field.min !== undefined && str_value.length < field.min) {
+				field_errors[field_id] = `Must be at least ${field.min} characters`;
+				continue;
+			}
+
+			if (field.max !== undefined && str_value.length > field.max) {
+				field_errors[field_id] = `Must be no more than ${field.max} characters`;
+				continue;
+			}
+		}
+	}
+
+	if (Object.keys(field_errors).length > 0) {
+		return {
+			error: 'Validation failed',
+			field_errors
+		};
+	}
+
+	return true;
+}
+
 export function form_render_html(schema: FormSchema) {
 	const $container = element('div')
 		.attr('is', `vue:component_${schema.id}`)
 		.attr('id', schema.id)
+		.attr('data-fx-endpoint', schema.endpoint)
 		.cls('fx-form');
 
 	const $form = $container.child('form');

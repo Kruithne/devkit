@@ -19,8 +19,54 @@ export function form_component($container) {
 		},
 
 		methods: {
-			submit() {
-				alert('Test');
+			async submit() {
+				for (const field_id in this.state) {
+					if (this.state[field_id].has_error)
+						return;
+				}
+
+				const form_data = {};
+				const fields = document.querySelectorAll(`[data-fx-field-id]`);
+				
+				for (const field of fields) {
+					const field_id = field.getAttribute('data-fx-field-id');
+					const $input = field.querySelector('.fx-input');
+
+					if ($input)
+						form_data[field_id] = $input.value;
+				}
+
+				const $form = document.querySelector('.fx-form');
+				const endpoint = $form.getAttribute('data-fx-endpoint');
+
+				try {
+					const response = await fetch(endpoint, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(form_data)
+					});
+
+					if (response.status !== 200)
+						throw new Error('Internal server error'); // todo
+					
+					const data = await response.json();
+					
+					if (data.error) // todo: placeholder
+						console.error(data.error);
+					
+					if (data.field_errors) {
+						for (const field_id in data.field_errors) {
+							if (this.state[field_id]) {
+								this.state[field_id].has_error = true;
+								this.state[field_id].error = data.field_errors[field_id];
+							}
+						}
+					}
+				} catch (error) {
+					console.error('Submission failed:', error);
+				}
 			},
 			
 			validate_field(field_id) {
