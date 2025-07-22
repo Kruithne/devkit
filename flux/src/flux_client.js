@@ -9,6 +9,7 @@ const default_error_messages = {
 };
 
 function resolve_error_message(message) {
+	// todo: resolve from data-fx-c-err
 	if (typeof message === 'string')
 		return default_error_messages[message];
 

@@ -24,6 +24,7 @@ type FormSchema = {
 	id: string;
 	endpoint: string;
 	fields: Record<string, FormField>;
+	errors?: Partial<Record<ErrorCode, string>>
 };
 
 type ValidationResult = {
@@ -102,6 +103,16 @@ export function form_render_html(schema: FormSchema) {
 		.cls('fx-form');
 
 	const $form = $container.child('form');
+
+	// custom error messages
+	if (schema.errors) {
+		for (const [error_code, error_message] of Object.entries(schema.errors)) {
+			$form.child('input')
+				.attr('type', 'hidden')
+				.attr('data-fx-c-err', error_code)
+				.attr('value', error_message);
+		}
+	}
 
 	let tab_index = 1;
 	for (const [field_id, field] of Object.entries(schema.fields)) {
