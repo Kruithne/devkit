@@ -1,15 +1,13 @@
-export function form_component(id) {
-	const element = document.getElementById(id);
-	
+export function form_component($container) {
 	return {
-		template: element?.innerHTML ?? '',
+		template: $container.innerHTML ?? '',
 		
 		data() {
 			const state = {};
-			const fields = element.querySelectorAll('.fx-field');
+			const fields = $container.querySelectorAll('.fx-field');
 			
 			for (const field of fields) {
-				state[field.getAttribute('data-fx-id')] = {
+				state[field.getAttribute('data-fx-field-id')] = {
 					has_error: false,
 					error: ''
 				};
@@ -26,7 +24,7 @@ export function form_component(id) {
 			},
 			
 			validate_field(field_id) {
-				const $field = document.querySelector(`[data-fx-id='${field_id}'`);
+				const $field = document.querySelector(`[data-fx-field-id='${field_id}'`);
 				const $input = $field.querySelector('.fx-input');
 
 				if (!$field || !$input)
@@ -52,13 +50,11 @@ export function form_component(id) {
 }
 
 export function form_auto_components() {
-	const form_elements = document.querySelectorAll('.fx-form');
+	const containers = document.querySelectorAll('.fx-form');
 	const components = {};
 	
-	for (const element of form_elements) {
-		if (element.id)
-			components[`component_${element.id}`] = form_component(element.id);
-	}
+	for (const $container of containers)
+		components[`component_${$container.id}`] = form_component($container);
 	
 	return components;
 }

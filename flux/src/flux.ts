@@ -18,17 +18,19 @@ export function form_create_schema(schema: FormSchema): FormSchema {
 }
 
 export function form_render_html(schema: FormSchema) {
-	const $form = element('form')
-		.attr('id', schema.id)
+	const $container = element('div')
 		.attr('is', `vue:component_${schema.id}`)
+		.attr('id', schema.id)
 		.cls('fx-form');
+
+	const $form = $container.child('form');
 
 	let tab_index = 1;
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const unique_field_id = `${schema.id}-${field_id}`;
 		const $label = $form.child('label')
 			.attr('for', unique_field_id)
-			.attr('data-fx-id', field_id)
+			.attr('data-fx-field-id', field_id)
 			.cls('fx-field');
 
 		if (field.label) {
@@ -64,5 +66,5 @@ export function form_render_html(schema: FormSchema) {
 		.attr('value', 'Submit')
 		.attr('@click', 'submit');
 
-	return $form.toString();
+	return $container.toString();
 }

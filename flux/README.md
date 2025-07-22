@@ -54,9 +54,6 @@ import { form_auto_components } from 'flux_client';
 
 const state = createApp({
 	components: {
-		// manually define components
-		component_test_form: form_component('test_form'),
-		// or automatically:
 		...form_auto_components()
 	},
 
