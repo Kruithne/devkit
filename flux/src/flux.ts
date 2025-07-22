@@ -18,6 +18,7 @@ type FormField = {
 	min?: number;
 	max?: number;
 	placeholder?: string;
+	errors?: Partial<Record<ErrorCode, string>>
 };
 
 type FormSchema = {
@@ -118,10 +119,22 @@ export function form_render_html(schema: FormSchema) {
 	let tab_index = 1;
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const unique_field_id = `${schema.id}-${field_id}`;
+
+		// custom per-field error messages
+		if (field.errors) {
+			for (const [error_code, error_message] of Object.entries(field.errors)) {
+				$form.child('input')
+					.attr('type', 'hidden')
+					.attr('data-fx-c-err', error_code)
+					.attr('data-fx-c-err-id', unique_field_id)
+					.attr('value', error_message)
+			}
+		}
+
 		const $label = $form.child('label')
 			.attr('for', unique_field_id)
-			.attr('data-fx-field-id', field_id)
-			.attr(':class', `{ 'fx-error': state['${field_id}'].has_error }`)
+			.attr('data-fx-field-id', unique_field_id)
+			.attr(':class', `{ 'fx-error': state['${unique_field_id}'].has_error }`)
 			.cls('fx-field');
 
 		if (field.min !== undefined)
@@ -138,15 +151,15 @@ export function form_render_html(schema: FormSchema) {
 
 		$label.child('span')
 			.cls('fx-error-text')
-			.attr('v-if', `state['${field_id}'].has_error`)
-			.text(`{{ state['${field_id}'].error }}`);
+			.attr('v-if', `state['${unique_field_id}'].has_error`)
+			.text(`{{ state['${unique_field_id}'].error }}`);
 
 		const $input = $label.child('input')
 			.attr('type', field.type)
 			.attr('id', unique_field_id)
 			.attr('tabindex', tab_index.toString())
-			.attr('@blur', `handle_field_blur('${field_id}')`)
-			.attr('@input', `handle_field_input('${field_id}')`)
+			.attr('@blur', `handle_field_blur('${unique_field_id}')`)
+			.attr('@input', `handle_field_input('${unique_field_id}')`)
 			.cls('fx-input', `fx-input-${field.type}`);
 
 		tab_index++;

@@ -35,8 +35,10 @@ export function form_component($container) {
 						return;
 				}
 
+				const $form = this.$refs.form;
+
 				const form_data = {};
-				const fields = this.$refs.form.querySelectorAll(`[data-fx-field-id]`);
+				const fields = $form.querySelectorAll(`[data-fx-field-id]`);
 				
 				for (const field of fields) {
 					const field_id = field.getAttribute('data-fx-field-id');
@@ -46,7 +48,7 @@ export function form_component($container) {
 						form_data[field_id] = $input.value;
 				}
 
-				const endpoint = this.$refs.form.getAttribute('data-fx-endpoint');
+				const endpoint = $form.getAttribute('data-fx-endpoint');
 
 				try {
 					const response = await fetch(endpoint, {
@@ -92,17 +94,27 @@ export function form_component($container) {
 				this.validate_field($field, field_id);
 			},
 
-			resolve_custom_error_message(error_code) {
+			resolve_custom_error_message(error_code, field_id) {
 				const $form = this.$refs.form;
-				const $custom = $form.querySelector(`[data-fx-c-err='${error_code}']`);
-				return $custom?.value ?? default_error_messages[error_code];
+
+				// per-field custom error
+				const $field_cst = $form.querySelector(`[data-fx-c-err='${error_code}'][data-fx-c-err-id='${field_id}']`);
+				if ($field_cst)
+					return $field_cst.value;
+
+				// global custom error
+				const $global_cst = $form.querySelector(`[data-fx-c-err='${error_code}']:not([data-fx-c-err-id])`);
+				if ($global_cst)
+					return $global_cst.value;
+
+				return default_error_messages[error_code];
 			},
 
-			resolve_error_message(message) {
+			resolve_error_message(message, field_id) {
 				if (typeof message === 'string')
-					return this.resolve_custom_error_message(message);
+					return this.resolve_custom_error_message(message, field_id);
 
-				let error_message = this.resolve_custom_error_message(message.err);
+				let error_message = this.resolve_custom_error_message(message.err, field_id);
 				if (message.params) {
 					for (const param in message.params)
 						error_message = error_message.replace(`{${param}}`, message.params[param]);
@@ -134,32 +146,32 @@ export function form_component($container) {
 					const num_value = parseFloat(value);
 					if (isNaN(num_value) && value !== '') {
 						state.has_error = true;
-						state.error = this.resolve_error_message('invalid_number');
+						state.error = this.resolve_error_message('invalid_number', field_id);
 						return;
 					}
 					
 					if (min !== null && num_value < parseFloat(min)) {
 						state.has_error = true;
 						state.error = `Must be at least ${min}`;
-						state.error = this.resolve_error_message({ err: 'number_too_small', params: { min } });
+						state.error = this.resolve_error_message({ err: 'number_too_small', params: { min } }, field_id);
 						return;
 					}
 					
 					if (max !== null && num_value > parseFloat(max)) {
 						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'number_too_large', params: { max } });
+						state.error = this.resolve_error_message({ err: 'number_too_large', params: { max } }, field_id);
 						return;
 					}
 				} else {
 					if (min !== null && value.length < parseInt(min)) {
 						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'string_too_small', params: { min } });
+						state.error = this.resolve_error_message({ err: 'string_too_small', params: { min } }, field_id);
 						return;
 					}
 					
 					if (max !== null && value.length > parseInt(max)) {
 						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'string_too_large', params: { ax } });
+						state.error = this.resolve_error_message({ err: 'string_too_large', params: { ax } }, field_id);
 						return;
 					}
 				}
