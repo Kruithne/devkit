@@ -113,7 +113,7 @@ function add_custom_errors($form: ReturnType<typeof element>, errors?: ErrorMap,
 	}
 }
 
-export function form_render_html(schema: FormSchema) {
+export function form_render_html(schema: FormSchema): string {
 	const $container = element('div')
 		.attr('is', `vue:component_${schema.id}`)
 		.attr('id', schema.id)
