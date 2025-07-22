@@ -49,39 +49,40 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 	const field_errors: FieldErrors = {};
 
 	for (const [field_id, field] of Object.entries(schema.fields)) {
-		const value = json[field_id];
+		const uid = `${schema.id}-${field_id}`;
+		const value = json[uid];
 
 		if (value === undefined || value === null || value === '') {
-			field_errors[field_id] = 'required';
+			field_errors[uid] = 'required';
 			continue;
 		}
 
 		if (field.type === 'number') {
 			const num_value = Number(value);
 			if (isNaN(num_value)) {
-				field_errors[field_id] = 'invalid_number';
+				field_errors[uid] = 'invalid_number';
 				continue;
 			}
 
 			if (field.min !== undefined && num_value < field.min) {
-				field_errors[field_id] = { err: 'number_too_small', params: { min: field.min } };
+				field_errors[uid] = { err: 'number_too_small', params: { min: field.min } };
 				continue;
 			}
 
 			if (field.max !== undefined && num_value > field.max) {
-				field_errors[field_id] = { err: 'number_too_large', params: { max: field.max } };
+				field_errors[uid] = { err: 'number_too_large', params: { max: field.max } };
 				continue;
 			}
 		} else {
 			const str_value = String(value).trim();
 
 			if (field.min !== undefined && str_value.length < field.min) {
-				field_errors[field_id] = { err: 'string_too_small', params: { min: field.min } };
+				field_errors[uid] = { err: 'string_too_small', params: { min: field.min } };
 				continue;
 			}
 
 			if (field.max !== undefined && str_value.length > field.max) {
-				field_errors[field_id] = { err: 'string_too_large', params: { max: field.max } };
+				field_errors[uid] = { err: 'string_too_large', params: { max: field.max } };
 				continue;
 			}
 		}
