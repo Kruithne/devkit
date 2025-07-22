@@ -72,7 +72,7 @@ export function form_component($container) {
 							const state = this.state[field_id];
 							if (state) {
 								state.has_error = true;
-								state.error = this.resolve_error_message($form, data.field_errors[field_id]);
+								state.error = this.resolve_error_message(data.field_errors[field_id], field_id);
 							}
 						}
 					}
