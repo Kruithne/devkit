@@ -23,8 +23,9 @@ export function form_render_html(schema: FormSchema) {
 		.attr('class', 'fx-form');
 
 	for (const [field_id, field] of Object.entries(schema.fields)) {
+		const unique_field_id = `${schema.id}-${field_id}`;
 		const $label = $form.child('label')
-			.attr('for', field_id);
+			.attr('for', unique_field_id);
 
 		if (field.label) {
 			$label.child('span')
@@ -35,7 +36,7 @@ export function form_render_html(schema: FormSchema) {
 		const input_class = `fx-input-${field.type}`;
 		const $input = $label.child('input')
 			.attr('type', field.type)
-			.attr('id', field_id)
+			.attr('id', unique_field_id)
 			.attr('class', input_class);
 
 		if (field.max !== undefined)
