@@ -1,5 +1,17 @@
 import { element } from '../../weave/src/weave';
 
+const default_error_messages = {
+	required: 'This field is required',
+	invalid_number: 'Must be a valid number',
+	number_too_small: 'Must be at least {min}',
+	number_too_large: 'Must be no more than {max}',
+	// todo: dual range error
+	string_too_small: 'Must be at least {min} characters',
+	string_too_large: 'Must not exceed {max} characters'
+};
+
+type ErrorCode = keyof typeof default_error_messages;
+
 type FormField = {
 	type: 'text' | 'number' | 'password';
 	label?: string;
@@ -16,50 +28,57 @@ type FormSchema = {
 
 type ValidationResult = {
 	error: string;
-	field_errors: Record<string, string>;
+	field_errors: FieldErrors;
 };
+
+type FieldError = ErrorCode | {
+	err: ErrorCode;
+	params: Record<string, any>;
+};
+
+type FieldErrors = Record<string, FieldError>;
 
 export function form_create_schema(schema: FormSchema): FormSchema {
 	return schema;
 }
 
 export function form_validate_req(schema: FormSchema, json: Record<string, any>): ValidationResult | true {
-	const field_errors: Record<string, string> = {};
+	const field_errors: FieldErrors = {};
 
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const value = json[field_id];
 
 		if (value === undefined || value === null || value === '') {
-			field_errors[field_id] = 'This field is required';
+			field_errors[field_id] = 'required';
 			continue;
 		}
 
 		if (field.type === 'number') {
 			const num_value = Number(value);
 			if (isNaN(num_value)) {
-				field_errors[field_id] = 'Must be a valid number';
+				field_errors[field_id] = 'invalid_number';
 				continue;
 			}
 
 			if (field.min !== undefined && num_value < field.min) {
-				field_errors[field_id] = `Must be at least ${field.min}`;
+				field_errors[field_id] = { err: 'number_too_small', params: { min: field.min } };
 				continue;
 			}
 
 			if (field.max !== undefined && num_value > field.max) {
-				field_errors[field_id] = `Must be no more than ${field.max}`;
+				field_errors[field_id] = { err: 'number_too_large', params: { max: field.max } };
 				continue;
 			}
 		} else {
 			const str_value = String(value).trim();
 
 			if (field.min !== undefined && str_value.length < field.min) {
-				field_errors[field_id] = `Must be at least ${field.min} characters`;
+				field_errors[field_id] = { err: 'string_too_small', params: { min: field.min } };
 				continue;
 			}
 
 			if (field.max !== undefined && str_value.length > field.max) {
-				field_errors[field_id] = `Must be no more than ${field.max} characters`;
+				field_errors[field_id] = { err: 'string_too_large', params: { max: field.max } };
 				continue;
 			}
 		}

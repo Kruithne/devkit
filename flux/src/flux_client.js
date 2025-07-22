@@ -1,3 +1,26 @@
+const default_error_messages = {
+	required: 'This field is required',
+	invalid_number: 'Must be a valid number',
+	number_too_small: 'Must be at least {min}',
+	number_too_large: 'Must be no more than {max}',
+	// todo: dual range error
+	string_too_small: 'Must be at least {min} characters',
+	string_too_large: 'Must not exceed {max} characters'
+};
+
+function resolve_error_message(message) {
+	if (typeof message === 'string')
+		return default_error_messages[message];
+
+	let error_message = default_error_messages[message.err];
+	if (message.params) {
+		for (const param in message.params)
+			error_message = error_message.replace(`{${param}}`, message.params[param]);
+	}
+	
+	return error_message;
+}
+
 export function form_component($container) {
 	return {
 		template: $container.innerHTML ?? '',
@@ -60,12 +83,12 @@ export function form_component($container) {
 						for (const field_id in data.field_errors) {
 							if (this.state[field_id]) {
 								this.state[field_id].has_error = true;
-								this.state[field_id].error = data.field_errors[field_id];
+								this.state[field_id].error = resolve_error_message(data.field_errors[field_id]);
 							}
 						}
 					}
 				} catch (error) {
-					console.error('Submission failed:', error);
+					console.error('Submission failed:', error); // todo: get rid of this
 				}
 			},
 			
@@ -86,8 +109,8 @@ export function form_component($container) {
 				state.error = '';		
 
 				const value = $input.value;
-				const min_attr = $field.getAttribute('fx-v-min');
-				const max_attr = $field.getAttribute('fx-v-max');
+				const min = $field.getAttribute('fx-v-min');
+				const max = $field.getAttribute('fx-v-max');
 				const input_type = $input.getAttribute('type');
 				
 				if (input_type === 'number') {
@@ -95,35 +118,36 @@ export function form_component($container) {
 					if (isNaN(num_value) && value !== '') {
 						$field.classList.add('fx-error');
 						state.has_error = true;
-						state.error = 'Must be a valid number';
+						state.error = resolve_error_message('invalid_number');
 						return;
 					}
 					
-					if (min_attr !== null && num_value < parseFloat(min_attr)) {
+					if (min !== null && num_value < parseFloat(min)) {
 						$field.classList.add('fx-error');
 						state.has_error = true;
-						state.error = `Must be at least ${min_attr}`;
+						state.error = `Must be at least ${min}`;
+						state.error = resolve_error_message({ err: 'number_too_small', params: { min } });
 						return;
 					}
 					
-					if (max_attr !== null && num_value > parseFloat(max_attr)) {
+					if (max !== null && num_value > parseFloat(max)) {
 						$field.classList.add('fx-error');
 						state.has_error = true;
-						state.error = `Must be no more than ${max_attr}`;
+						state.error = resolve_error_message({ err: 'number_too_large', params: { max } });
 						return;
 					}
 				} else {
-					if (min_attr !== null && value.length < parseInt(min_attr)) {
+					if (min !== null && value.length < parseInt(min)) {
 						$field.classList.add('fx-error');
 						state.has_error = true;
-						state.error = `Must be at least ${min_attr} characters`;
+						state.error = resolve_error_message({ err: 'string_too_small', params: { min } });
 						return;
 					}
 					
-					if (max_attr !== null && value.length > parseInt(max_attr)) {
+					if (max !== null && value.length > parseInt(max)) {
 						$field.classList.add('fx-error');
 						state.has_error = true;
-						state.error = `Must be no more than ${max_attr} characters`;
+						state.error = resolve_error_message({ err: 'string_too_large', params: { ax } });
 						return;
 					}
 				}
