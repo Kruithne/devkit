@@ -11,6 +11,7 @@ const default_error_messages = {
 };
 
 type ErrorCode = keyof typeof default_error_messages;
+type ErrorMap = Partial<Record<ErrorCode, string>>;
 
 type FormField = {
 	type: 'text' | 'number' | 'password';
@@ -18,14 +19,14 @@ type FormField = {
 	min?: number;
 	max?: number;
 	placeholder?: string;
-	errors?: Partial<Record<ErrorCode, string>>
+	errors?: ErrorMap
 };
 
 type FormSchema = {
 	id: string;
 	endpoint: string;
 	fields: Record<string, FormField>;
-	errors?: Partial<Record<ErrorCode, string>>
+	errors?:ErrorMap
 };
 
 type ValidationResult = {
@@ -96,6 +97,21 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 	return true;
 }
 
+function add_custom_errors($form: ReturnType<typeof element>, errors?: ErrorMap, field_id?: string) {
+	if (!errors)
+		return;
+
+	for (const [error_code, error_message] of Object.entries(errors)) {
+		const $input = $form.child('input')
+			.attr('type', 'hidden')
+			.attr('data-fx-c-err', error_code)
+			.attr('value', error_message);
+
+		if (field_id !== undefined)
+			$input.attr('data-fx-c-err-id', field_id);
+	}
+}
+
 export function form_render_html(schema: FormSchema) {
 	const $container = element('div')
 		.attr('is', `vue:component_${schema.id}`)
@@ -107,29 +123,14 @@ export function form_render_html(schema: FormSchema) {
 		.attr('ref', 'form');
 
 	// custom error messages
-	if (schema.errors) {
-		for (const [error_code, error_message] of Object.entries(schema.errors)) {
-			$form.child('input')
-				.attr('type', 'hidden')
-				.attr('data-fx-c-err', error_code)
-				.attr('value', error_message);
-		}
-	}
+	add_custom_errors($form, schema.errors);
 
 	let tab_index = 1;
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const unique_field_id = `${schema.id}-${field_id}`;
 
 		// custom per-field error messages
-		if (field.errors) {
-			for (const [error_code, error_message] of Object.entries(field.errors)) {
-				$form.child('input')
-					.attr('type', 'hidden')
-					.attr('data-fx-c-err', error_code)
-					.attr('data-fx-c-err-id', unique_field_id)
-					.attr('value', error_message)
-			}
-		}
+		add_custom_errors($form, field.errors, unique_field_id);
 
 		const $label = $form.child('label')
 			.attr('for', unique_field_id)
