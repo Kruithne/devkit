@@ -20,7 +20,8 @@ export function form_create_schema(schema: FormSchema): FormSchema {
 export function form_render_html(schema: FormSchema) {
 	const $form = element('form')
 		.attr('id', schema.id)
-		.attr('class', 'fx-form');
+		.attr('is', `vue:component_${schema.id}`)
+		.cls('fx-form');
 
 	let tab_index = 1;
 	for (const [field_id, field] of Object.entries(schema.fields)) {
@@ -49,6 +50,12 @@ export function form_render_html(schema: FormSchema) {
 		if (field.placeholder)
 			$input.attr('placeholder', field.placeholder);
 	}
+
+	// placeholder
+	const $submit = $form.child('input')
+		.attr('type', 'button')
+		.attr('value', 'Submit')
+		.attr('@click', 'submit');
 
 	return $form.toString();
 }

@@ -9,7 +9,7 @@ It provides reactive HTML form rendering from server-side schema with input vali
 Define schema on server:
 ```ts
 const test_form = form_create_schema({
-	id: 'test-form',
+	id: 'test_form',
 	fields: {
 		name: {
 			type: 'text',
@@ -42,4 +42,25 @@ server.json('/api/submit-form', (req, url, json) => {
 
 	form.fields.name; // validation + typing
 });
+```
+
+Create client-side component:
+```js
+import { createApp } from 'vue';
+import { form_auto_components } from 'flux_client';
+
+const state = createApp({
+	components: {
+		// manually define components
+		component_test_form: form_component('test_form'),
+		// or automatically:
+		...form_auto_components()
+	},
+
+	data() {
+		return {
+			test: 'world'
+		}
+	}
+}).mount('#container');
 ```
