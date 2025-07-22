@@ -109,6 +109,7 @@ export function form_render_html(schema: FormSchema) {
 		const $label = $form.child('label')
 			.attr('for', unique_field_id)
 			.attr('data-fx-field-id', field_id)
+			.attr(':class', `{ 'fx-error': state['${field_id}'].has_error }`)
 			.cls('fx-field');
 
 		if (field.min !== undefined)

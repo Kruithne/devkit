@@ -105,7 +105,6 @@ export function form_component($container) {
 					return;
 				
 				// clear error state
-				$field.classList.remove('fx-error');
 				state.has_error = false;
 				state.error = '';		
 
@@ -117,14 +116,12 @@ export function form_component($container) {
 				if (input_type === 'number') {
 					const num_value = parseFloat(value);
 					if (isNaN(num_value) && value !== '') {
-						$field.classList.add('fx-error');
 						state.has_error = true;
 						state.error = resolve_error_message('invalid_number');
 						return;
 					}
 					
 					if (min !== null && num_value < parseFloat(min)) {
-						$field.classList.add('fx-error');
 						state.has_error = true;
 						state.error = `Must be at least ${min}`;
 						state.error = resolve_error_message({ err: 'number_too_small', params: { min } });
@@ -132,21 +129,18 @@ export function form_component($container) {
 					}
 					
 					if (max !== null && num_value > parseFloat(max)) {
-						$field.classList.add('fx-error');
 						state.has_error = true;
 						state.error = resolve_error_message({ err: 'number_too_large', params: { max } });
 						return;
 					}
 				} else {
 					if (min !== null && value.length < parseInt(min)) {
-						$field.classList.add('fx-error');
 						state.has_error = true;
 						state.error = resolve_error_message({ err: 'string_too_small', params: { min } });
 						return;
 					}
 					
 					if (max !== null && value.length > parseInt(max)) {
-						$field.classList.add('fx-error');
 						state.has_error = true;
 						state.error = resolve_error_message({ err: 'string_too_large', params: { ax } });
 						return;
