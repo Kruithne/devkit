@@ -33,11 +33,10 @@ export function form_render_html(schema: FormSchema) {
 				.text(field.label);
 		}
 
-		const input_class = `fx-input-${field.type}`;
 		const $input = $label.child('input')
 			.attr('type', field.type)
 			.attr('id', unique_field_id)
-			.attr('class', input_class);
+			.attr('class', `fx-input-${field.type}`);
 
 		if (field.max !== undefined)
 			$input.attr('maxlength', field.max.toString());
