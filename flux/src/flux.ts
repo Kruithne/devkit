@@ -26,7 +26,8 @@ export function form_render_html(schema: FormSchema) {
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const unique_field_id = `${schema.id}-${field_id}`;
 		const $label = $form.child('label')
-			.attr('for', unique_field_id);
+			.attr('for', unique_field_id)
+			.attr('class', 'fx-field');
 
 		if (field.label) {
 			$label.child('span')
