@@ -13,16 +13,23 @@ type ErrorCode = typeof default_error_messages[number];
 type ErrorCode = keyof typeof default_error_messages;
 type ErrorMap = Partial<Record<ErrorCode, string>>;
 
-type FormField = {
-	type: 'text' | 'number' | 'password';
-	label?: string;
-	min?: number;
-	max?: number;
-	min_length?: number;
-	max_length?: number;
-	placeholder?: string;
-	errors?: ErrorMap
-};
+type FormField = 
+	| {
+		type: 'number';
+		label?: string;
+		min?: number;
+		max?: number;
+		placeholder?: string;
+		errors?: ErrorMap;
+	}
+	| {
+		type: 'text' | 'password';
+		label?: string;
+		min_length?: number;
+		max_length?: number;
+		placeholder?: string;
+		errors?: ErrorMap;
+	};
 
 type FormSchema = {
 	id: string;
