@@ -113,8 +113,8 @@ Errors in flux are configured on the server and propagated automatically to the 
 	number_too_small: 'Must be at least {min}',
 	number_too_large: 'Must be no more than {max}',
 	// todo: dual range error
-	string_too_small: 'Must be at least {min} characters',
-	string_too_large: 'Must not exceed {max} characters'
+	text_too_small: 'Must be at least {min} characters',
+	text_too_large: 'Must not exceed {max} characters'
 };
 ```
 

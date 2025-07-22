@@ -6,8 +6,8 @@ const default_error_messages = {
 	number_too_small: 'Must be at least {min}',
 	number_too_large: 'Must be no more than {max}',
 	// todo: dual range error
-	string_too_small: 'Must be at least {min} characters',
-	string_too_large: 'Must not exceed {max} characters'
+	text_too_small: 'Must be at least {min} characters',
+	text_too_large: 'Must not exceed {max} characters'
 };
 
 type ErrorCode = keyof typeof default_error_messages;
@@ -79,12 +79,12 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 			const str_value = String(value).trim();
 
 			if (field.min !== undefined && str_value.length < field.min) {
-				field_errors[uid] = { err: 'string_too_small', params: { min: field.min } };
+				field_errors[uid] = { err: 'text_too_small', params: { min: field.min } };
 				continue;
 			}
 
 			if (field.max !== undefined && str_value.length > field.max) {
-				field_errors[uid] = { err: 'string_too_large', params: { max: field.max } };
+				field_errors[uid] = { err: 'text_too_large', params: { max: field.max } };
 				continue;
 			}
 		}

@@ -4,8 +4,8 @@ const default_error_messages = {
 	number_too_small: 'Must be at least {min}',
 	number_too_large: 'Must be no more than {max}',
 	// todo: dual range error
-	string_too_small: 'Must be at least {min} characters',
-	string_too_large: 'Must not exceed {max} characters'
+	text_too_small: 'Must be at least {min} characters',
+	text_too_large: 'Must not exceed {max} characters'
 };
 
 export function form_component($container) {
@@ -169,13 +169,13 @@ export function form_component($container) {
 
 					if (min !== null && value.length < parseInt(min)) {
 						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'string_too_small', params: { min } }, field_id);
+						state.error = this.resolve_error_message({ err: 'text_too_small', params: { min } }, field_id);
 						return;
 					}
 					
 					if (max !== null && value.length > parseInt(max)) {
 						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'string_too_large', params: { ax } }, field_id);
+						state.error = this.resolve_error_message({ err: 'text_too_large', params: { ax } }, field_id);
 						return;
 					}
 				}
