@@ -9,6 +9,7 @@ No warranties provided, but feedback welcome.
 
 ## Index
 
-| Name | Description | Lang |
+| Name | Description | Technology |
 | --- | --- | --- |
-| [weave](/weave) | A simple fluent API for generating HTML markup. | ![typescript](https://img.shields.io/badge/language-typescript-blue) |
+| [weave](/weave) | A simple fluent API for generating HTML markup. | ![typescript](https://img.shields.io/badge/typescript-blue) |
+| [flux](/flux) | Dynamic server ↔ client form system. | ![typescript](https://img.shields.io/badge/typescript-blue) ![vue](https://img.shields.io/badge/vue-4FC08D) |

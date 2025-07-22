@@ -1,10 +1,13 @@
-# flux &middot; ![typescript](https://img.shields.io/badge/language-typescript-blue) [![license badge](https://img.shields.io/github/license/Kruithne/devkit?color=yellow)](LICENSE)
+# flux &middot; ![typescript](https://img.shields.io/badge/typescript-blue) ![vue](https://img.shields.io/badge/vue-4FC08D) [![license badge](https://img.shields.io/github/license/Kruithne/devkit?color=yellow)](LICENSE)
 
 `flux` is a dynamic server ↔ client form system.
 
 It provides reactive HTML form rendering from server-side schema with input validation and interface feedback.
 
 ## Usage
+
+> ![NOTE]
+> The examples below use [spooder](https://github.com/Kruithne/spooder). While this is not required, the API is built with this in mind.
 
 Define schema on server:
 ```ts
