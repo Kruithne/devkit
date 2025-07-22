@@ -92,9 +92,21 @@ export function form_component($container) {
 					console.error('Submission failed:', error); // todo: get rid of this
 				}
 			},
-			
-			validate_field(field_id) {
+
+			handle_field_input(field_id) {
 				const $field = document.querySelector(`[data-fx-field-id='${field_id}'`);
+				if (!$field.classList.contains('fx-error'))
+					return;
+
+				this.validate_field($field, field_id);
+			},
+
+			handle_field_blur(field_id) {
+				const $field = document.querySelector(`[data-fx-field-id='${field_id}'`);
+				this.validate_field($field, field_id);
+			},
+			
+			validate_field($field, field_id) {
 				const $input = $field.querySelector('.fx-input');
 
 				if (!$field || !$input)

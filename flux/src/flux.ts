@@ -133,7 +133,8 @@ export function form_render_html(schema: FormSchema) {
 			.attr('type', field.type)
 			.attr('id', unique_field_id)
 			.attr('tabindex', tab_index.toString())
-			.attr('@blur', `validate_field('${field_id}')`)
+			.attr('@blur', `handle_field_blur('${field_id}')`)
+			.attr('@input', `handle_field_input('${field_id}')`)
 			.cls('fx-input', `fx-input-${field.type}`);
 
 		tab_index++;
