@@ -50,7 +50,7 @@ export function form_component($container) {
 				}
 
 				const form_data = {};
-				const fields = document.querySelectorAll(`[data-fx-field-id]`);
+				const fields = this.$refs.form.querySelectorAll(`[data-fx-field-id]`);
 				
 				for (const field of fields) {
 					const field_id = field.getAttribute('data-fx-field-id');
@@ -60,8 +60,8 @@ export function form_component($container) {
 						form_data[field_id] = $input.value;
 				}
 
-				const $form = document.querySelector('.fx-form');
-				const endpoint = $form.getAttribute('data-fx-endpoint');
+				const $form_container = this.$refs.form.parentElement;
+				const endpoint = $form_container.getAttribute('data-fx-endpoint');
 
 				try {
 					const response = await fetch(endpoint, {
@@ -95,7 +95,7 @@ export function form_component($container) {
 			},
 
 			handle_field_input(field_id) {
-				const $field = document.querySelector(`[data-fx-field-id='${field_id}'`);
+				const $field = this.$refs.form.querySelector(`[data-fx-field-id='${field_id}']`);
 				if (!$field.classList.contains('fx-error'))
 					return;
 
@@ -103,7 +103,7 @@ export function form_component($container) {
 			},
 
 			handle_field_blur(field_id) {
-				const $field = document.querySelector(`[data-fx-field-id='${field_id}'`);
+				const $field = this.$refs.form.querySelector(`[data-fx-field-id='${field_id}']`);
 				this.validate_field($field, field_id);
 			},
 			

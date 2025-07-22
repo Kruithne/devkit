@@ -102,7 +102,8 @@ export function form_render_html(schema: FormSchema) {
 		.attr('data-fx-endpoint', schema.endpoint)
 		.cls('fx-form');
 
-	const $form = $container.child('form');
+	const $form = $container.child('form')
+		.attr('ref', 'form');
 
 	// custom error messages
 	if (schema.errors) {
