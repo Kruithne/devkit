@@ -5,14 +5,47 @@ export function form_component(id) {
 		template: element?.innerHTML ?? '',
 		
 		data() {
+			const state = {};
+			const fields = element.querySelectorAll('.fx-field');
+			
+			for (const field of fields) {
+				state[field.getAttribute('data-fx-id')] = {
+					has_error: false,
+					error: ''
+				};
+			}
+			
 			return {
-				comp_test: 'Foobar'
+				state
 			};
 		},
 
 		methods: {
 			submit() {
 				alert('Test');
+			},
+			
+			validate_field(field_id) {
+				const $field = document.querySelector(`[data-fx-id='${field_id}'`);
+				const $input = $field.querySelector('.fx-input');
+
+				if (!$field || !$input)
+					return;
+
+				const state = this.state[field_id];
+				if (!state)
+					return;
+				
+				// clear error state
+				$field.classList.remove('fx-error');
+				state.has_error = false;
+				state.error = '';		
+
+				if ($input.value !== 'test') {
+					$field.classList.add('fx-error');
+					state.has_error = true;
+					state.error = 'User did not write test';
+				}
 			}
 		}
     }
