@@ -60,8 +60,8 @@ export function form_component($container) {
 						form_data[field_id] = $input.value;
 				}
 
-				const $form_container = this.$refs.form.parentElement;
-				const endpoint = $form_container.getAttribute('data-fx-endpoint');
+				const $form = this.$refs.form;
+				const endpoint = $form.getAttribute('data-fx-endpoint');
 
 				try {
 					const response = await fetch(endpoint, {
