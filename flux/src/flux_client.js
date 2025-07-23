@@ -44,9 +44,10 @@ const default_error_messages = {
 	invalid_number: 'Must be a valid number',
 	number_too_small: 'Must be at least {min}',
 	number_too_large: 'Must be no more than {max}',
-	// todo: dual range error
+	number_range: 'Must be between {min} and {max}',
 	text_too_small: 'Must be at least {min} characters',
-	text_too_large: 'Must not exceed {max} characters'
+	text_too_large: 'Must not exceed {max} characters',
+	text_range: 'Must be between {min} and {max} characters'
 };
 
 export function form_component(app, container_id) {
@@ -263,32 +264,50 @@ export function form_component(app, container_id) {
 						state.error = this.resolve_error_message('invalid_number', field_id);
 						return;
 					}
-					
-					if (min !== null && num_value < parseFloat(min)) {
+
+					let min_error = min !== null && num_value < parseFloat(min);
+					let max_error = max !== null && num_value > parseFloat(max);
+
+					if (min_error && max_error) {
 						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'number_too_small', params: { min } }, field_id);
+						state.error = this.resolve_error_message({ err: 'number_range', params: { min, max } }, field_id);
 						return;
-					}
-					
-					if (max !== null && num_value > parseFloat(max)) {
-						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'number_too_large', params: { max } }, field_id);
-						return;
+					} else {
+						if (min_error) {
+							state.has_error = true;
+							state.error = this.resolve_error_message({ err: 'number_too_small', params: { min } }, field_id);
+							return;
+						}
+
+						if (max_error) {
+							state.has_error = true;
+							state.error = this.resolve_error_message({ err: 'number_too_large', params: { max } }, field_id);
+							return;
+						}
 					}
 				} else {
 					const min = $field.getAttribute('fx-v-min-length');
 					const max = $field.getAttribute('fx-v-max-length');
-					
-					if (min !== null && value.length < parseInt(min)) {
+
+					let min_error = min !== null && value.length < parseInt(min);
+					let max_error = max !== null && value.length > parseInt(max);
+
+					if (min_error && max_error) {
 						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'text_too_small', params: { min } }, field_id);
+						state.error = this.resolve_error_message({ err: 'text_range', params: { min, max } }, field_id);
 						return;
-					}
-					
-					if (max !== null && value.length > parseInt(max)) {
-						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'text_too_large', params: { max } }, field_id);
-						return;
+					} else {
+						if (min_error) {
+							state.has_error = true;
+							state.error = this.resolve_error_message({ err: 'text_too_small', params: { min } }, field_id);
+							return;
+						}
+
+						if (max_error) {
+							state.has_error = true;
+							state.error = this.resolve_error_message({ err: 'text_too_late', params: { max } }, field_id);
+							return;
+						}
 					}
 				}
 			}

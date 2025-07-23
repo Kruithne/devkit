@@ -7,8 +7,10 @@ const default_error_messages = [
 	'invalid_number',
 	'number_too_small',
 	'number_too_large',
+	'number_range',
 	'text_too_small',
-	'text_too_large'
+	'text_too_large',
+	'text_range'
 ] as const;
 
 type ErrorCode = typeof default_error_messages[number];
@@ -114,28 +116,44 @@ export function form_validate_req<T extends FormSchema>(
 				continue;
 			}
 
-			if (field.min !== undefined && num_value < field.min) {
-				field_errors[uid] = { err: 'number_too_small', params: { min: field.min } };
-				continue;
-			}
+			let min_error = field.min !== undefined && num_value < field.min;
+			let max_error = field.max !== undefined && num_value > field.max;
 
-			if (field.max !== undefined && num_value > field.max) {
-				field_errors[uid] = { err: 'number_too_large', params: { max: field.max } };
+			if (min_error && max_error) {
+				field_errors[uid] = { err: 'number_range', params: { min: field.min, max: field.max } };
 				continue;
+			} else {
+				if (min_error) {
+					field_errors[uid] = { err: 'number_too_small', params: { min: field.min } };
+					continue;
+				}
+
+				if (max_error) {
+					field_errors[uid] = { err: 'number_too_large', params: { max: field.max } };
+					continue;
+				}
 			}
 
 			validated_fields[field_id] = num_value;
 		} else {
 			const str_value = String(value).trim();
 
-			if (field.min_length !== undefined && str_value.length < field.min_length) {
-				field_errors[uid] = { err: 'text_too_small', params: { min: field.min_length } };
-				continue;
-			}
+			let min_error = field.min_length !== undefined && str_value.length < field.min_length;
+			let max_error = field.max_length !== undefined && str_value.length > field.max_length;
 
-			if (field.max_length !== undefined && str_value.length > field.max_length) {
-				field_errors[uid] = { err: 'text_too_large', params: { max: field.max_length } };
+			if (min_error && max_error) {
+				field_errors[uid] = { err: 'text_range', params: { min: field.min_length, max: field.max_length } };
 				continue;
+			} else {
+				if (min_error) {
+					field_errors[uid] = { err: 'text_too_small', params: { min: field.min_length } };
+					continue;
+				}
+
+				if (max_error) {
+					field_errors[uid] = { err: 'text_too_large', params: { max: field.max_length } };
+					continue;
+				}
 			}
 
 			validated_fields[field_id] = str_value;

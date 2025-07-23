@@ -221,9 +221,10 @@ Errors in flux are configured on the server and propagated automatically to the 
 	invalid_number: 'Must be a valid number',
 	number_too_small: 'Must be at least {min}',
 	number_too_large: 'Must be no more than {max}',
-	// todo: dual range error
+	number_range: 'Must be between {min} and {max}',
 	text_too_small: 'Must be at least {min} characters',
-	text_too_large: 'Must not exceed {max} characters'
+	text_too_large: 'Must not exceed {max} characters',
+	text_range: 'Must be between {min} and {max} characters'
 };
 ```
 
