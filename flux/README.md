@@ -160,7 +160,7 @@ Below are the possible error codes:
 
 | Code | Reason | Parameters |
 | --- | --- | --- |
-| client_side_validation_error | One or more fields failed client-side validation | None |
+| client_side_validation_error | One or more fields failed client-side validation | field_errors[] |
 | http_error | Failed to send the HTTP request | status_code: number, status_text: string |
 | form_error | One or more fields failed server-side validation | field_errors[] |
 | generic_error | Generic exception | error: string |
