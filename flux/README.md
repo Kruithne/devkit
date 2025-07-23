@@ -63,7 +63,7 @@ const form = form_component(app, 'test_form');
 app.mount('#container');
 ```
 
-# API
+## API
 
 ```ts
 // server-side
@@ -107,7 +107,68 @@ form_component(app: VueApp, form_id: string): VueComponent
 }
 ```
 
-# Custom Errors
+## Event Handling
+
+The `form_component` function returns an event bus which can be used to monitor the form flow.
+
+```ts
+const test_form = form_component(app, 'my_form');
+test_form.on('submit_pending', () => {});
+test_form.on('submit_success', () => {});
+test_form.on('submit_failure', () => {});
+```
+
+### 🟠 submit_pending
+
+This event is fired as soon as the submit button is pressed, before any validation logic occurs. This will fire even if client-side validation will fail.
+
+### 🟢 submit_success
+
+This event is fired once the form has passed client-side validation, server-side validation, and everything has processed correctly.
+
+The payload for this event is the JSON object returned from the server endpoint.
+
+```ts
+// server
+server.json('/api/submit-form', (req, url, json) => {
+	const validate = form_validate_req(test_form, json);
+	if (validate.error)
+		return validate.error;
+
+	return { foobar: 42 };
+});
+
+// client
+test_form.on('submit_success', data => {
+	console.log(data.foobar); // > 42
+});
+```
+
+### 🔴 submit_failure
+
+This event is fired when an error occurs anywhere in the process between `submit_pending` and `submit_success` and will prevent `submit_success` from firing.
+
+All errors have the `.code` property which can be used to determine the origin of the error.
+
+```ts
+test_form.on('submit_faiure', e => {
+	console.log(e.code); // client_side_validation_error
+});
+```
+
+Below are the possible error codes:
+
+| Code | Reason | Parameters |
+| --- | --- | --- |
+| client_side_validation_error | One or more fields failed client-side validation | None |
+| http_error | Failed to send the HTTP request | status_code: number, status_text: string |
+| form_error | One or more fields failed server-side validation | field_errors[] |
+| generic_error | Generic exception | error: string |
+
+In the event of both `client_side_validation_error` and `form_error`, specific field errors will be automatically propgated to the component to render a relevant error message.
+
+
+## Custom Field Error Messages
 
 Errors in flux are configured on the server and propagated automatically to the client. The full map of errors with the default messages can be found below.
 

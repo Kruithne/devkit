@@ -37,7 +37,7 @@ type FormSchema = {
 };
 
 type ValidationResult = {
-	error: string;
+	error: boolean;
 	field_errors: FieldErrors;
 };
 
@@ -105,7 +105,7 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 
 	if (Object.keys(field_errors).length > 0) {
 		return {
-			error: 'Validation failed',
+			error: true,
 			field_errors
 		};
 	}
