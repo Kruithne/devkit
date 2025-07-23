@@ -137,8 +137,16 @@ export function form_component($container) {
 				state.has_error = false;
 				state.error = '';		
 
-				const value = $input.value;
+				const value = $input.value?.trim();
 				const input_type = $input.getAttribute('type');
+
+				// fields are required if fx-v-required is 'true' or undefined
+				const field_required = $field.getAttribute('fx-v-required') !== 'false';
+				if (field_required && value.length === 0) {
+					state.has_error = true;
+					state.error = this.resolve_error_message('required', field_id);
+					return;
+				}
 				
 				if (input_type === 'number') {
 					const min = $field.getAttribute('fx-v-min');
@@ -166,15 +174,14 @@ export function form_component($container) {
 				} else {
 					const min = $field.getAttribute('fx-v-min-length');
 					const max = $field.getAttribute('fx-v-max-length');
-					const trimmed_value = value.trim();
 
-					if (min !== null && trimmed_value.length < parseInt(min)) {
+					if (min !== null && value.length < parseInt(min)) {
 						state.has_error = true;
 						state.error = this.resolve_error_message({ err: 'text_too_small', params: { min } }, field_id);
 						return;
 					}
 					
-					if (max !== null && trimmed_value.length > parseInt(max)) {
+					if (max !== null && value.length > parseInt(max)) {
 						state.has_error = true;
 						state.error = this.resolve_error_message({ err: 'text_too_large', params: { max } }, field_id);
 						return;

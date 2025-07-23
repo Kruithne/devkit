@@ -16,6 +16,7 @@ type FormFieldBase = {
 	label?: string;
 	placeholder?: string;
 	errors?: ErrorMap;
+	required?: boolean;
 };
 
 type FormField = FormFieldBase & ({
@@ -58,8 +59,16 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 		const uid = `${schema.id}-${field_id}`;
 		const value = json[uid];
 
-		if (value === undefined || value === null || value === '') {
-			field_errors[uid] = 'required';
+		// we are considering undefined, null, or an empty (trimmed) string
+		// to be a missing field. missing fields are not included in the 
+		// final field list. if they are marked as .required then this
+		// will raise a field error
+
+		const field_required = field.required ?? true;
+		if (value === undefined || value === null || value.trim() === '') {
+			if (field_required)
+				field_errors[uid] = 'required';
+
 			continue;
 		}
 
@@ -158,6 +167,9 @@ export function form_render_html(schema: FormSchema): string {
 			if (field.max_length !== undefined)
 				$label.attr('fx-v-max-length', field.max_length.toString());
 		}
+
+		if (field.required)
+			$label.attr('fx-v-required', field.required.toString());
 
 		if (field.label) {
 			$label.child('span')
