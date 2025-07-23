@@ -1,6 +1,6 @@
 export function create_event_bus() {
 	const listeners = new Map();
-
+	
 	return {
 		on: (event, callback) => {
 			const existing_callbacks = listeners.get(event);
@@ -9,7 +9,7 @@ export function create_event_bus() {
 			else
 				listeners.set(event, new Set([callback]));
 		},
-
+		
 		once: (event, callback) => {
 			const wrapped_callback = (payload) => {
 				callback(payload);
@@ -26,7 +26,7 @@ export function create_event_bus() {
 			else
 				listeners.set(event, new Set([wrapped_callback]));
 		},
-
+		
 		emit: (event, payload) => {
 			const callbacks = listeners.get(event);
 			if (callbacks) {
@@ -82,12 +82,24 @@ export function form_component(app, container_id) {
 			async submit() {
 				events.emit('submit_pending');
 				
-				for (const field_id in this.state) {
-					if (this.state[field_id].has_error) {
-						return events.emit('submit_failure', {
-							code: 'client_side_validation_error'
-						});
-					}
+				const state = this.state;
+				const field_errors = {};
+				
+				for (const [field_id, field] of Object.entries(state)) {
+					field.has_error = false;
+
+					const $field = this.$refs.form.querySelector(`[data-fx-field-id='${field_id}']`);
+					this.validate_field($field, field_id);
+
+					if (field.has_error)
+						field_errors[field_id] = field.error;
+				}
+
+				if (Object.keys(field_errors).length > 0) {
+					return events.emit('submit_failure', {
+						code: 'client_side_validation_error',
+						field_errors
+					});
 				}
 				
 				const $form = this.$refs.form;
