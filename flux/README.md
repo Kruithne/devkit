@@ -167,6 +167,18 @@ Below are the possible error codes:
 
 In the event of both `client_side_validation_error` and `form_error`, specific field errors will be automatically propgated to the component to render a relevant error message.
 
+## Event Flow Classes
+
+In addition to events, a CSS class is also applied to the containing `<form>` depending on the flow state, allowing you to control the styling depending on the state.
+
+| Class | Scenario |
+| --- | --- |
+| fx-state-pending | The user submits the form, before any validation occurs. |
+| fx-state-error | The form is in an error state. |
+| fx-state-success | The form has successfully been submitted. |
+
+> ![NOTE]
+> The fx-state-error is only applied when an error occurs during submission, not for immediate feedback field errors.
 
 ## Custom Field Error Messages
 

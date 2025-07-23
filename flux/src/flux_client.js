@@ -79,12 +79,24 @@ export function form_component(app, container_id) {
 		},
 		
 		methods: {
+			set_flow_state(state) {
+				const classes = this.$refs.form.classList;
+				classes.remove('fx-state-success', 'fx-state-error', 'fx-state-pending');
+				classes.add('fx-state-' + state);
+			},
+
+			emit_error(error_obj) {
+				this.set_flow_state('error');
+				events.emit('submit_failure', error_obj);
+			},
+
 			async submit() {
+				this.set_flow_state('pending');
 				events.emit('submit_pending');
 				
 				const state = this.state;
 				const field_errors = {};
-				
+
 				for (const [field_id, field] of Object.entries(state)) {
 					field.has_error = false;
 
@@ -96,12 +108,12 @@ export function form_component(app, container_id) {
 				}
 
 				if (Object.keys(field_errors).length > 0) {
-					return events.emit('submit_failure', {
+					return this.emit_error({
 						code: 'client_side_validation_error',
 						field_errors
 					});
 				}
-				
+
 				const $form = this.$refs.form;
 				
 				const form_data = {};
@@ -127,7 +139,7 @@ export function form_component(app, container_id) {
 					});
 					
 					if (response.status !== 200) {
-						return events.emit('submit_failure', {
+						return this.emit_error({
 							code: 'http_error',
 							status_text: response.statusText,
 							status_code: response.status
@@ -147,15 +159,16 @@ export function form_component(app, container_id) {
 							}
 						}
 						
-						return events.emit('submit_failure', {
+						return this.emit_error({
 							code: 'form_error',
 							field_errors: data.field_errors
 						});
 					} else {
+						this.set_flow_state('success');
 						events.emit('submit_success', data);
 					}
 				} catch (error) {
-					events.emit('submit_failure', {
+					this.emit_error({
 						code: 'generic_error',
 						error: error.toString()
 					});
