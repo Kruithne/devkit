@@ -133,7 +133,7 @@ server.json('/api/submit', (req, url, json) => {
 > [!NOTE]
 > Context should be used to attach small contextual data into a form. It is not suitable for large data.
 
-> [!IMPORTANT]
+> [!CAUTION]
 > Do not include sensitive data in the context and always validate the returned context within the endpoint. This data is serialized within the form but is trivial for clients to view and tamper. Consider the context data public and untrusted.
 
 ## Event Handling
