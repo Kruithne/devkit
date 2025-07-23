@@ -266,7 +266,6 @@ export function form_component(app, container_id) {
 					
 					if (min !== null && num_value < parseFloat(min)) {
 						state.has_error = true;
-						state.error = `Must be at least ${min}`;
 						state.error = this.resolve_error_message({ err: 'number_too_small', params: { min } }, field_id);
 						return;
 					}
