@@ -52,15 +52,15 @@ server.json('/api/submit-form', (req, url, json) => {
 Create client-side component:
 ```js
 import { createApp } from 'vue';
-import { form_auto_components } from 'flux_client';
+import { form_component } from 'flux_client';
 
-const state = createApp({
-	components: {
-		...form_auto_components()
-	}
+const app = createApp({});
+const form = form_component(app, 'test_form');
 
-	// ...rest of your reactive app...
-}).mount('#container');
+// the id provided to form_component above must match the
+// id defined for the form in the server-side schema
+
+app.mount('#container');
 ```
 
 # API
@@ -73,10 +73,9 @@ form_render_html(schema: FormSchema): string
 
 
 // client-side
-form_component($element: HTMLElement): VueComponent
-form_auto_components(): Record<string, VueComponent>
+form_component(app: VueApp, form_id: string): VueComponent
 
-// schema
+// server-side schema
 {
 	id: 'my-form', // required
 	endpoint: '/api/submit-form', // required

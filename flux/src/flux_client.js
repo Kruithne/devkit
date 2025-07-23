@@ -8,8 +8,17 @@ const default_error_messages = {
 	text_too_large: 'Must not exceed {max} characters'
 };
 
-export function form_component($container) {
-	return {
+export function form_component(app, container_id) {
+	const container_selector = `#${container_id}.fx-form`;
+	const component_id = `component_${container_id}`;
+	const $container = document.querySelector(container_selector);
+
+	if (!$container) {
+		console.error(`failed to add ${component_id}, selector ${container_selector} failed`);
+		return;
+	}
+
+	const component = {
 		template: $container.innerHTML ?? '',
 		
 		data() {
@@ -190,14 +199,8 @@ export function form_component($container) {
 			}
 		}
     }
-}
 
-export function form_auto_components() {
-	const containers = document.querySelectorAll('.fx-form');
-	const components = {};
-	
-	for (const $container of containers)
-		components[`component_${$container.id}`] = form_component($container);
-	
-	return components;
+	app.component(component_id, component);
+
+	return component; // todo: do we need to return this now?
 }
