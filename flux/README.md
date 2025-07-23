@@ -6,7 +6,7 @@ It provides reactive HTML form rendering from server-side schema with input vali
 
 ## Usage
 
-> ![NOTE]
+> [!NOTE]
 > The examples below use [spooder](https://github.com/Kruithne/spooder). While this is not required, the API is built with this in mind.
 
 Define schema on server:
@@ -130,10 +130,10 @@ server.json('/api/submit', (req, url, json) => {
 });
 ```
 
-> ![NOTE]
+> [!NOTE]
 > Context should be used to attach small contextual data into a form. It is not suitable for large data.
 
-> ![IMPORTANT]
+> [!IMPORTANT]
 > Do not include sensitive data in the context and always validate the returned context within the endpoint. This data is serialized within the form but is trivial for clients to view and tamper. Consider the context data public and untrusted.
 
 ## Event Handling
@@ -206,7 +206,7 @@ In addition to events, a CSS class is also applied to the containing `<form>` de
 | fx-state-error | The form is in an error state. |
 | fx-state-success | The form has successfully been submitted. |
 
-> ![NOTE]
+> [!NOTE]
 > The fx-state-error is only applied when an error occurs during submission, not for immediate feedback field errors.
 
 ## Custom Field Error Messages
