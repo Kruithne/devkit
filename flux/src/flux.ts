@@ -38,11 +38,15 @@ type InferSchemaFields<T extends FormSchema> = {
 	[K in keyof T['fields'] as T['fields'][K]['required'] extends false ? K : never]?: InferFieldType<T['fields'][K]>
 };
 
-type FormSchema<TId extends string = string, TFields extends Record<string, FormField> = Record<string, FormField>> = {
+type DeepPartial<T> = T extends object ? {
+	[P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
+type FormSchema<TId extends string = string, TFields extends Record<string, FormField> = Record<string, FormField>, TContext = any> = {
 	id: TId;
 	endpoint: string;
 	fields: TFields;
-	context?: any;
+	context?: TContext;
 	errors?: ErrorMap;
 };
 
@@ -57,7 +61,7 @@ type ValidationResult<T extends FormSchema> =
 		error?: never;
 		field_errors?: never;
 		fields: InferSchemaFields<T>;
-		context?: T['context'];
+		context?: T extends FormSchema<any, any, infer C> ? DeepPartial<C> : never;
 	};
 
 type FieldError = ErrorCode | {
@@ -67,9 +71,9 @@ type FieldError = ErrorCode | {
 
 type FieldErrors = Record<string, FieldError>;
 
-export function form_create_schema<TId extends string, TFields extends Record<string, FormField>>(
-	schema: FormSchema<TId, TFields>
-): FormSchema<TId, TFields> {
+export function form_create_schema<TId extends string, TFields extends Record<string, FormField>, TContext = any>(
+	schema: FormSchema<TId, TFields, TContext>
+): FormSchema<TId, TFields, TContext> {
 	return schema;
 }
 
