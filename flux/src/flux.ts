@@ -1,6 +1,8 @@
 import { element } from '../../weave/src/weave';
 
 const default_error_messages = [
+	'generic_validation',
+	'generic_malformed',
 	'required',
 	'invalid_number',
 	'number_too_small',
@@ -37,8 +39,8 @@ type FormSchema = {
 };
 
 type ValidationResult = {
-	error: boolean;
-	field_errors: FieldErrors;
+	error: ErrorCode;
+	field_errors?: FieldErrors;
 };
 
 type FieldError = ErrorCode | {
@@ -55,9 +57,12 @@ export function form_create_schema(schema: FormSchema): FormSchema {
 export function form_validate_req(schema: FormSchema, json: Record<string, any>): ValidationResult | true {
 	const field_errors: FieldErrors = {};
 
+	if (typeof json.fields !== 'object' || json.fields === null)
+		return { error: 'generic_malformed' };
+
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const uid = `${schema.id}-${field_id}`;
-		const value = json[uid];
+		const value = json.fields[uid];
 
 		// we are considering undefined, null, or an empty (trimmed) string
 		// to be a missing field. missing fields are not included in the 
@@ -105,7 +110,7 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 
 	if (Object.keys(field_errors).length > 0) {
 		return {
-			error: true,
+			error: 'generic_validation',
 			field_errors
 		};
 	}

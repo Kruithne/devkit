@@ -38,6 +38,8 @@ export function create_event_bus() {
 }
 
 const default_error_messages = {
+	generic_validation: 'There was an issue with one or more fields',
+	generic_malformed: 'Malformed request',
 	required: 'This field is required',
 	invalid_number: 'Must be a valid number',
 	number_too_small: 'Must be at least {min}',
@@ -116,7 +118,7 @@ export function form_component(app, container_id) {
 
 				const $form = this.$refs.form;
 				
-				const form_data = {};
+				const form_data_fields = {};
 				const fields = $form.querySelectorAll(`[data-fx-field-id]`);
 				
 				for (const field of fields) {
@@ -124,7 +126,7 @@ export function form_component(app, container_id) {
 					const $input = field.querySelector('.fx-input');
 					
 					if ($input)
-						form_data[field_id] = $input.value;
+						form_data_fields[field_id] = $input.value;
 				}
 				
 				const endpoint = $form.getAttribute('data-fx-endpoint');
@@ -135,7 +137,9 @@ export function form_component(app, container_id) {
 						headers: {
 							'Content-Type': 'application/json'
 						},
-						body: JSON.stringify(form_data)
+						body: JSON.stringify({
+							fields: form_data_fields
+						})
 					});
 					
 					if (response.status !== 200) {
@@ -161,6 +165,7 @@ export function form_component(app, container_id) {
 						
 						return this.emit_error({
 							code: 'form_error',
+							error: this.resolve_error_message(data.error),
 							field_errors: data.field_errors
 						});
 					} else {
@@ -192,9 +197,11 @@ export function form_component(app, container_id) {
 				const $form = this.$refs.form;
 				
 				// per-field custom error
-				const $field_cst = $form.querySelector(`[data-fx-c-err='${error_code}'][data-fx-c-err-id='${field_id}']`);
-				if ($field_cst)
-					return $field_cst.value;
+				if (field_id) {
+					const $field_cst = $form.querySelector(`[data-fx-c-err='${error_code}'][data-fx-c-err-id='${field_id}']`);
+					if ($field_cst)
+						return $field_cst.value;
+				}
 				
 				// global custom error
 				const $global_cst = $form.querySelector(`[data-fx-c-err='${error_code}']:not([data-fx-c-err-id])`);

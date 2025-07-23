@@ -186,6 +186,8 @@ Errors in flux are configured on the server and propagated automatically to the 
 
 ```ts
 {
+	generic_validation: 'There was an issue with one or more fields', // infers field errors
+	generic_malformed: 'Malformed request', // user tampering or developer error
 	required: 'This field is required',
 	invalid_number: 'Must be a valid number',
 	number_too_small: 'Must be at least {min}',
