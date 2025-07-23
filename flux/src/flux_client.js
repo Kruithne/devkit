@@ -175,7 +175,7 @@ export function form_component($container) {
 					
 					if (max !== null && value.length > parseInt(max)) {
 						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'text_too_large', params: { ax } }, field_id);
+						state.error = this.resolve_error_message({ err: 'text_too_large', params: { max } }, field_id);
 						return;
 					}
 				}
