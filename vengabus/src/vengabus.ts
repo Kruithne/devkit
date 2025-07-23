@@ -8,15 +8,15 @@ export interface VengabusInstance {
 }
 
 export function create_event_bus(): VengabusInstance {
-	const listeners = new Map<string, EventCallback[]>();
+	const listeners = new Map<string, Set<EventCallback>>();
 
 	return {
 		on: <T = any>(event: string, callback: EventCallback<T>) => {
 			const existing_callbacks = listeners.get(event);
 			if (existing_callbacks)
-				existing_callbacks.push(callback);
+				existing_callbacks.add(callback);
 			else
-				listeners.set(event, [callback]);
+				listeners.set(event, new Set([callback]));
 		},
 
 		once: <T = any>(event: string, callback: EventCallback<T>) => {
@@ -24,20 +24,18 @@ export function create_event_bus(): VengabusInstance {
 				callback(payload);
 				const callbacks = listeners.get(event);
 				if (callbacks) {
-					const index = callbacks.indexOf(wrapped_callback);
-					if (index !== -1) {
-						callbacks.splice(index, 1);
-						if (callbacks.length === 0)
-							listeners.delete(event);
-					}
+					callbacks.delete(wrapped_callback);
+					
+					if (callbacks.size === 0)
+						listeners.delete(event);
 				}
 			};
 			
 			const existing_callbacks = listeners.get(event);
 			if (existing_callbacks)
-				existing_callbacks.push(wrapped_callback);
+				existing_callbacks.add(wrapped_callback);
 			else
-				listeners.set(event, [wrapped_callback]);
+				listeners.set(event, new Set([wrapped_callback]));
 		},
 
 		off: (event: string, callback?: EventCallback) => {
@@ -48,12 +46,9 @@ export function create_event_bus(): VengabusInstance {
 
 			const callbacks = listeners.get(event);
 			if (callbacks) {
-				const index = callbacks.indexOf(callback);
-				if (index !== -1) {
-					callbacks.splice(index, 1);
-					if (callbacks.length === 0)
-						listeners.delete(event);
-				}
+				callbacks.delete(callback);
+				if (callbacks.size === 0)
+					listeners.delete(event);
 			}
 		},
 
