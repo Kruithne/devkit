@@ -35,12 +35,14 @@ type FormSchema = {
 	id: string;
 	endpoint: string;
 	fields: Record<string, FormField>;
+	context?: any;
 	errors?:ErrorMap
 };
 
 type ValidationResult = {
-	error: ErrorCode;
+	error?: ErrorCode;
 	field_errors?: FieldErrors;
+	context?: any;	
 };
 
 type FieldError = ErrorCode | {
@@ -54,7 +56,7 @@ export function form_create_schema(schema: FormSchema): FormSchema {
 	return schema;
 }
 
-export function form_validate_req(schema: FormSchema, json: Record<string, any>): ValidationResult | true {
+export function form_validate_req(schema: FormSchema, json: Record<string, any>): ValidationResult {
 	const field_errors: FieldErrors = {};
 
 	if (typeof json.fields !== 'object' || json.fields === null)
@@ -115,7 +117,9 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 		};
 	}
 
-	return true;
+	return {
+		context: json.context ? JSON.parse(atob(json.context)) : undefined
+	}
 }
 
 function add_custom_errors($form: ReturnType<typeof element>, errors?: ErrorMap, field_id?: string) {
@@ -145,6 +149,14 @@ export function form_render_html(schema: FormSchema): string {
 
 	// custom error messages
 	add_custom_errors($form, schema.errors);
+
+	if (schema.context) {
+		const encoded = btoa(JSON.stringify(schema.context));
+		$form.child('input')
+			.attr('type', 'hidden')
+			.attr('id', 'fx-context')
+			.attr('value', encoded);
+	}
 
 	let tab_index = 1;
 	for (const [field_id, field] of Object.entries(schema.fields)) {

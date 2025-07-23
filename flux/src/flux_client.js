@@ -117,8 +117,12 @@ export function form_component(app, container_id) {
 				}
 
 				const $form = this.$refs.form;
+
+				const form_data = {};
 				
-				const form_data_fields = {};
+				const endpoint = $form.getAttribute('data-fx-endpoint');
+
+				const form_data_fields = form_data.fields = {};
 				const fields = $form.querySelectorAll(`[data-fx-field-id]`);
 				
 				for (const field of fields) {
@@ -129,7 +133,9 @@ export function form_component(app, container_id) {
 						form_data_fields[field_id] = $input.value;
 				}
 				
-				const endpoint = $form.getAttribute('data-fx-endpoint');
+				const $context = $form.querySelector('#fx-context');
+				if ($context)
+					form_data.context = $context.value;
 				
 				try {
 					const response = await fetch(endpoint, {
@@ -137,9 +143,7 @@ export function form_component(app, container_id) {
 						headers: {
 							'Content-Type': 'application/json'
 						},
-						body: JSON.stringify({
-							fields: form_data_fields
-						})
+						body: JSON.stringify(form_data)
 					});
 					
 					if (response.status !== 200) {

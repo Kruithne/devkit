@@ -12,5 +12,5 @@ No warranties provided, but feedback welcome.
 | Name | Description | Technology |
 | --- | --- | --- |
 | [weave](/weave) | A simple fluent API for generating HTML markup. | ![typescript](https://img.shields.io/badge/typescript-blue) |
-| [flux](/flux) | Dynamic server ↔ client form system. | ![typescript](https://img.shields.io/badge/typescript-blue) ![vue](https://img.shields.io/badge/vue-4FC08D) |
+| [flux](/flux) | Dynamic server ↔ client form system. | ![typescript](https://img.shields.io/badge/typescript-blue) ![bun](https://img.shields.io/badge/bun-FBF0DF) ![vue](https://img.shields.io/badge/vue-4FC08D) |
 | [vengabus](/vengabus) | A tiny portable event bus interface. | ![typescript](https://img.shields.io/badge/typescript-blue) |

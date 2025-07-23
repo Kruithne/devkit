@@ -80,6 +80,8 @@ form_component(app: VueApp, form_id: string): VueComponent
 	id: 'my-form', // required
 	endpoint: '/api/submit-form', // required
 
+	context?: any; // see context below
+
 	fields: {
 		shared_field_properties: {
 			label?: string;
@@ -106,6 +108,33 @@ form_component(app: VueApp, form_id: string): VueComponent
 	}
 }
 ```
+
+## Context
+
+The `.context` property can be used to define serializable data on the schema which will be available on the endpoint.
+
+```ts
+const form = form_create_schema({
+	endpoint: '/api/submit',
+	context: {
+		uuid: Bun.randomUUIDv7() // 019837a5-7dd1-7000-b5c5-f5b25dffe9d1
+	}
+});
+
+server.json('/api/submit', (req, url, json) => {
+	const validate = form_validate_req(form, json);
+	if (validate.error)
+		return validate;
+
+	console.log(json.context.uuid); // 019837a5-7dd1-7000-b5c5-f5b25dffe9d1
+});
+```
+
+> ![NOTE]
+> Context should be used to attach small contextual data into a form. It is not suitable for large data.
+
+> ![IMPORTANT]
+> Do not include sensitive data in the context and always validate the returned context within the endpoint. This data is serialized within the form but is trivial for clients to view and tamper. Consider the context data public and untrusted.
 
 ## Event Handling
 
