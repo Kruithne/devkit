@@ -31,19 +31,34 @@ type FormField = FormFieldBase & ({
 	max_length?: number;
 });
 
-type FormSchema = {
-	id: string;
-	endpoint: string;
-	fields: Record<string, FormField>;
-	context?: any;
-	errors?:ErrorMap
+type InferFieldType<T extends FormField> = T extends { type: 'number' } ? number : string;
+type InferSchemaFields<T extends FormSchema> = {
+	[K in keyof T['fields'] as T['fields'][K]['required'] extends false ? never : K]: InferFieldType<T['fields'][K]>
+} & {
+	[K in keyof T['fields'] as T['fields'][K]['required'] extends false ? K : never]?: InferFieldType<T['fields'][K]>
 };
 
-type ValidationResult = {
-	error?: ErrorCode;
-	field_errors?: FieldErrors;
-	context?: any;	
+type FormSchema<TId extends string = string, TFields extends Record<string, FormField> = Record<string, FormField>> = {
+	id: TId;
+	endpoint: string;
+	fields: TFields;
+	context?: any;
+	errors?: ErrorMap;
 };
+
+type ValidationResult<T extends FormSchema> = 
+	| {
+		error: ErrorCode;
+		field_errors: FieldErrors;
+		fields?: never;
+		context?: never;
+	}
+	| {
+		error?: never;
+		field_errors?: never;
+		fields: InferSchemaFields<T>;
+		context?: T['context'];
+	};
 
 type FieldError = ErrorCode | {
 	err: ErrorCode;
@@ -52,15 +67,24 @@ type FieldError = ErrorCode | {
 
 type FieldErrors = Record<string, FieldError>;
 
-export function form_create_schema(schema: FormSchema): FormSchema {
+export function form_create_schema<TId extends string, TFields extends Record<string, FormField>>(
+	schema: FormSchema<TId, TFields>
+): FormSchema<TId, TFields> {
 	return schema;
 }
 
-export function form_validate_req(schema: FormSchema, json: Record<string, any>): ValidationResult {
+export function form_validate_req<T extends FormSchema>(
+	schema: T,
+	json: Record<string, any>
+): ValidationResult<T> {
 	const field_errors: FieldErrors = {};
+	const validated_fields: Record<string, any> = {};
 
 	if (typeof json.fields !== 'object' || json.fields === null)
-		return { error: 'generic_malformed' };
+		return { 
+			error: 'generic_malformed',
+			field_errors: {}
+		};
 
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const uid = `${schema.id}-${field_id}`;
@@ -72,7 +96,7 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 		// will raise a field error
 
 		const field_required = field.required ?? true;
-		if (value === undefined || value === null || value.trim() === '') {
+		if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
 			if (field_required)
 				field_errors[uid] = 'required';
 
@@ -95,6 +119,8 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 				field_errors[uid] = { err: 'number_too_large', params: { max: field.max } };
 				continue;
 			}
+
+			validated_fields[field_id] = num_value;
 		} else {
 			const str_value = String(value).trim();
 
@@ -107,6 +133,8 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 				field_errors[uid] = { err: 'text_too_large', params: { max: field.max_length } };
 				continue;
 			}
+
+			validated_fields[field_id] = str_value;
 		}
 	}
 
@@ -118,8 +146,9 @@ export function form_validate_req(schema: FormSchema, json: Record<string, any>)
 	}
 
 	return {
+		fields: validated_fields as InferSchemaFields<T>,
 		context: json.context ? JSON.parse(atob(json.context)) : undefined
-	}
+	};
 }
 
 function add_custom_errors($form: ReturnType<typeof element>, errors?: ErrorMap, field_id?: string) {
