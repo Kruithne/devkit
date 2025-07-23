@@ -82,16 +82,22 @@ form_auto_components(): Record<string, VueComponent>
 	endpoint: '/api/submit-form', // required
 
 	fields: {
+		shared_field_properties: {
+			label?: string;
+			placeholder?: string;
+			required?: boolean; // defaults to true
+		},
+
 		text_field: {
 			type: 'text' | 'password';
-			min_length: number;
-			max_length: number;
+			min_length?: number;
+			max_length?: number;
 		},
 
 		number_field: {
 			type: 'number';
-			min: number;
-			max: number;
+			min?: number;
+			max?: number;
 		}
 	},
 
