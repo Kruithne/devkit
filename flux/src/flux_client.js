@@ -166,14 +166,15 @@ export function form_component($container) {
 				} else {
 					const min = $field.getAttribute('fx-v-min-length');
 					const max = $field.getAttribute('fx-v-max-length');
+					const trimmed_value = value.trim();
 
-					if (min !== null && value.length < parseInt(min)) {
+					if (min !== null && trimmed_value.length < parseInt(min)) {
 						state.has_error = true;
 						state.error = this.resolve_error_message({ err: 'text_too_small', params: { min } }, field_id);
 						return;
 					}
 					
-					if (max !== null && value.length > parseInt(max)) {
+					if (max !== null && trimmed_value.length > parseInt(max)) {
 						state.has_error = true;
 						state.error = this.resolve_error_message({ err: 'text_too_large', params: { max } }, field_id);
 						return;
