@@ -1,6 +1,6 @@
 type EventCallback<T = any> = (payload: T) => void;
 
-interface VengabusInstance {
+export interface VengabusInstance {
 	on<T = any>(event: string, callback: EventCallback<T>): void;
 	once<T = any>(event: string, callback: EventCallback<T>): void;
 	off(event: string, callback?: EventCallback): void;
