@@ -1,11 +1,8 @@
-import { Window } from 'happy-dom';
-import { run_test, assert, assert_equal, assert_defined } from '../test_api';
+import { run_test, assert, assert_equal, assert_defined, setup_dom_environment, assert_contains, assert_dom_class } from '../test_api';
 import { form_render_html } from '../../src/flux';
 import { test_schemas, create_field_uid } from '../test_utils';
 
-const window = new Window();
-global.document = window.document;
-global.HTMLElement = window.HTMLElement;
+setup_dom_environment();
 
 function test_basic_form_structure() {
 	const schema = test_schemas.minimal;
@@ -16,7 +13,7 @@ function test_basic_form_structure() {
 	const container = document.getElementById(schema.id);
 	assert_defined(container);
 	assert_equal(container.getAttribute('is'), `vue:component_${schema.id}`);
-	assert(container.classList.contains('fx-form'));
+	assert_dom_class(container, 'fx-form');
 	assert_equal(container.getAttribute('data-fx-endpoint'), schema.endpoint);
 	
 	const form = container.querySelector('form');
@@ -39,13 +36,13 @@ function test_field_rendering() {
 		const label = container.querySelector(`label[for="${unique_field_id}"]`);
 		assert_defined(label, `Label not found for field ${field_id}`);
 		assert_equal(label.getAttribute('data-fx-field-id'), unique_field_id);
-		assert(label.classList.contains('fx-field'));
+		assert_dom_class(label, 'fx-field');
 		
 		const input = container.querySelector(`input#${unique_field_id}`);
 		assert_defined(input, `Input not found for field ${field_id}`);
 		assert_equal(input.getAttribute('type'), field.type);
-		assert(input.classList.contains('fx-input'));
-		assert(input.classList.contains(`fx-input-${field.type}`));
+		assert_dom_class(input, 'fx-input');
+		assert_dom_class(input, `fx-input-${field.type}`);
 		
 		if (field.label) {
 			const label_span = label.querySelector('.fx-label');
@@ -143,7 +140,7 @@ function test_error_message_display() {
 	const error_span = label.querySelector('.fx-error-text');
 	assert_defined(error_span);
 	assert_equal(error_span.getAttribute('v-if'), `state['${name_uid}'].has_error`);
-	assert(error_span.textContent.includes(`state['${name_uid}'].error`));
+	assert_contains(error_span.textContent, `state['${name_uid}'].error`);
 }
 
 function test_tab_index_assignment() {
@@ -287,7 +284,7 @@ function test_vue_class_binding() {
 	
 	const class_binding = label.getAttribute(':class');
 	assert_defined(class_binding);
-	assert(class_binding.includes(`'fx-error': state['${name_uid}'].has_error`));
+	assert_contains(class_binding, `'fx-error': state['${name_uid}'].has_error`);
 }
 
 run_test('basic form structure renders correctly', test_basic_form_structure);

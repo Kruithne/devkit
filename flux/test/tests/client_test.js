@@ -1,12 +1,9 @@
-import { Window } from 'happy-dom';
-import { run_test, assert, assert_equal, assert_defined } from '../test_api';
+import { run_test, assert, assert_equal, assert_defined, setup_dom_environment, assert_contains, assert_dom_class } from '../test_api';
 import { create_event_bus, form_component } from '../../src/flux_client.js';
 import { form_render_html } from '../../src/flux';
 import { test_schemas, create_field_uid } from '../test_utils';
 
-const window = new Window();
-global.document = window.document;
-global.HTMLElement = window.HTMLElement;
+setup_dom_environment();
 global.fetch = async (url, options) => {
 	const mock_response = {
 		status: 200,
@@ -15,21 +12,22 @@ global.fetch = async (url, options) => {
 	return mock_response;
 };
 
-class MockVueApp {
-	components = {};
-	
-	component(name, config) {
-		this.components[name] = config;
-	}
-	
-	mount(selector) {
-		return {};
-	}
-}
 
 function create_test_form_dom(schema) {
 	const html = form_render_html(schema);
 	document.body.innerHTML = html;
+	
+	class MockVueApp {
+		components = {};
+		
+		component(name, config) {
+			this.components[name] = config;
+		}
+		
+		mount(selector) {
+			return {};
+		}
+	}
 	
 	const app = new MockVueApp();
 	form_component(app, schema.id);
@@ -235,13 +233,13 @@ function test_validate_field_text_length() {
 	instance.validate_field(field, username_uid);
 	
 	assert_equal(instance.state[username_uid].has_error, true);
-	assert(instance.state[username_uid].error.includes('at least 3'));
+	assert_contains(instance.state[username_uid].error, 'at least 3');
 	
 	input.value = 'a'.repeat(25);
 	instance.validate_field(field, username_uid);
 	
 	assert_equal(instance.state[username_uid].has_error, true);
-	assert(instance.state[username_uid].error.includes('20'));
+	assert_contains(instance.state[username_uid].error, '20');
 	
 	input.value = 'validuser';
 	instance.validate_field(field, username_uid);
@@ -270,13 +268,13 @@ function test_validate_field_number_validation() {
 	instance.validate_field(field, age_uid);
 	
 	assert_equal(instance.state[age_uid].has_error, true);
-	assert(instance.state[age_uid].error.includes('at least 18'));
+	assert_contains(instance.state[age_uid].error, 'at least 18');
 	
 	input.value = '150';
 	instance.validate_field(field, age_uid);
 	
 	assert_equal(instance.state[age_uid].has_error, true);
-	assert(instance.state[age_uid].error.includes('100'));
+	assert_contains(instance.state[age_uid].error, '100');
 	
 	input.value = '25';
 	instance.validate_field(field, age_uid);
@@ -331,17 +329,14 @@ function test_optional_field_validation() {
 	const input = field.querySelector('.fx-input');
 	
 	input.value = '';
-	console.log('Optional field fx-v-required:', field.getAttribute('fx-v-required'));
 	instance.validate_field(field, optional_phone_uid);
-	
-	console.log('Optional field error state:', instance.state[optional_phone_uid]);
 	assert_equal(instance.state[optional_phone_uid].has_error, false);
 	
 	input.value = '123';
 	instance.validate_field(field, optional_phone_uid);
 	
 	assert_equal(instance.state[optional_phone_uid].has_error, true);
-	assert(instance.state[optional_phone_uid].error.includes('at least 10'));
+	assert_contains(instance.state[optional_phone_uid].error, 'at least 10');
 }
 
 function test_set_flow_state() {
@@ -357,17 +352,17 @@ function test_set_flow_state() {
 	};
 	
 	instance.set_flow_state('pending');
-	assert(form.classList.contains('fx-state-pending'));
+	assert_dom_class(form, 'fx-state-pending');
 	assert(!form.classList.contains('fx-state-success'));
 	assert(!form.classList.contains('fx-state-error'));
 	
 	instance.set_flow_state('success');
-	assert(form.classList.contains('fx-state-success'));
+	assert_dom_class(form, 'fx-state-success');
 	assert(!form.classList.contains('fx-state-pending'));
 	assert(!form.classList.contains('fx-state-error'));
 	
 	instance.set_flow_state('error');
-	assert(form.classList.contains('fx-state-error'));
+	assert_dom_class(form, 'fx-state-error');
 	assert(!form.classList.contains('fx-state-pending'));
 	assert(!form.classList.contains('fx-state-success'));
 }

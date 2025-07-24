@@ -1,4 +1,4 @@
-import { run_test, assert, assert_equal, assert_defined } from '../test_api';
+import { run_test, assert, assert_equal, assert_defined, assert_array_length } from '../test_api';
 import { form_create_schema, form_validate_req } from '../../src/flux';
 import { test_schemas, create_test_request, create_malformed_requests, create_field_uid, create_validation_test_cases } from '../test_utils';
 
@@ -192,7 +192,7 @@ function test_optional_field_validation() {
 	assert(!minimal_result.error);
 	assert_defined(minimal_result.fields);
 	assert_equal(minimal_result.fields.required_name, 'John');
-	assert_equal(Object.keys(minimal_result.fields).length, 1);
+	assert_array_length(Object.keys(minimal_result.fields), 1);
 
 	const optional_valid_request = create_test_request(schema, {
 		required_name: 'John',
@@ -242,7 +242,7 @@ function test_malformed_request_handling() {
 	for (const malformed_request of malformed_requests) {
 		const result = form_validate_req(schema, malformed_request);
 		assert_equal(result.error, 'generic_malformed');
-		assert_equal(Object.keys(result.field_errors).length, 0);
+		assert_array_length(Object.keys(result.field_errors), 0);
 	}
 }
 

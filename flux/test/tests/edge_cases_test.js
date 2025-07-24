@@ -1,11 +1,8 @@
-import { Window } from 'happy-dom';
-import { run_test, assert, assert_equal, assert_defined } from '../test_api';
+import { run_test, assert, assert_equal, assert_defined, setup_dom_environment, assert_contains, assert_array_length } from '../test_api';
 import { form_create_schema, form_validate_req, form_render_html } from '../../src/flux';
 import { create_test_request, create_field_uid } from '../test_utils';
 
-const window = new Window();
-global.document = window.document;
-global.HTMLElement = window.HTMLElement;
+setup_dom_environment();
 
 function test_large_form_with_many_fields() {
 	const fields = {};
@@ -39,7 +36,7 @@ function test_large_form_with_many_fields() {
 
 	assert(!result.error);
 	assert_defined(result.fields);
-	assert_equal(Object.keys(result.fields).length, 50);
+	assert_array_length(Object.keys(result.fields), 50);
 }
 
 function test_nested_complex_context() {
@@ -93,7 +90,7 @@ function test_nested_complex_context() {
 	assert_equal(decoded_context.user.id, 12345);
 	assert_equal(decoded_context.user.profile.name, 'John Doe');
 	assert_equal(decoded_context.user.profile.preferences.theme, 'dark');
-	assert_equal(decoded_context.session.metadata.tags.length, 3);
+	assert_array_length(decoded_context.session.metadata.tags, 3);
 	assert_equal(decoded_context.session.metadata.tags[0], 'test');
 
 	const request = create_test_request(schema, { message: 'Test' });
@@ -174,7 +171,7 @@ function test_mixed_field_types_complex_validation() {
 
 	const invalid_result = form_validate_req(schema, invalid_request);
 	assert_equal(invalid_result.error, 'generic_validation');
-	assert_equal(Object.keys(invalid_result.field_errors).length, 6);
+	assert_array_length(Object.keys(invalid_result.field_errors), 6);
 }
 
 function test_boundary_value_validation() {
@@ -406,21 +403,13 @@ function test_error_message_encoding_safety() {
 	document.body.innerHTML = html;
 
 	const field_uid = create_field_uid(schema.id, 'content');
-	console.log('Looking for field UID:', field_uid);
-	console.log('HTML:', html.substring(0, 500));
-	
-	const all_error_inputs = document.querySelectorAll('input[data-fx-c-err]');
-	console.log('Found error inputs:', all_error_inputs.length);
-	for (const input of all_error_inputs) {
-		console.log('Error input:', input.getAttribute('data-fx-c-err'), input.getAttribute('data-fx-c-err-id'), input.getAttribute('value'));
-	}
 	
 	const error_input = document.querySelector(`input[data-fx-c-err="text_too_small"][data-fx-c-err-id="${field_uid}"]`);
 	assert_defined(error_input);
 
 	const error_message = error_input.value;
-	assert(error_message.includes('<script>alert("xss")</script>'));
-	assert(error_message.includes('& "quotes"'));
+	assert_contains(error_message, '<script>alert("xss")</script>');
+	assert_contains(error_message, '& "quotes"');
 }
 
 function test_context_modification_during_validation() {

@@ -279,7 +279,7 @@ await run_e2e_test('form renders correctly with Vue', '/', async (page) => {
 });
 
 await run_e2e_test('successful form submission works', '/', async (page) => {
-	page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+	// page.on('console', msg => console.log('PAGE LOG:', msg.text()));
 	
 	const username_uid = create_field_uid(test_schemas.complex.id, 'username');
 	const password_uid = create_field_uid(test_schemas.complex.id, 'password');
@@ -293,22 +293,12 @@ await run_e2e_test('successful form submission works', '/', async (page) => {
 	await page.type(password_input, 'password123');
 	await page.type(age_input, '25');
 
-	console.log('Clicking submit button...');
 	await page.click('input[value="Submit"]');
-	
-	console.log('Waiting for state change...');
 	try {
 		await page.waitForSelector('.fx-state-success, .fx-state-error', { timeout: 5000 });
-		console.log('State change detected');
+		// State change detected
 	} catch (e) {
-		console.log('No state change detected, checking for JS errors');
-		const errors = await page.evaluate(() => {
-			return window.console.error || [];
-		});
-		console.log('JS errors:', errors);
-		
-		const html = await page.content();
-		console.log('Page HTML:', html.substring(0, 1000));
+		// No state change detected
 		throw e;
 	}
 
