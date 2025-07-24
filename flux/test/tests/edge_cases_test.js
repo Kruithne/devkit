@@ -383,35 +383,6 @@ function test_number_parsing_edge_cases() {
 	}
 }
 
-function test_error_message_encoding_safety() {
-	const schema = form_create_schema({
-		id: 'encoding_test_form',
-		endpoint: '/submit',
-		fields: {
-			content: {
-				type: 'text',
-				required: true,
-				min_length: 5,
-				errors: {
-					text_too_small: 'Content must be at least {min} chars. Special: <script>alert("xss")</script> & "quotes"'
-				}
-			}
-		}
-	});
-
-	const html = form_render_html(schema);
-	document.body.innerHTML = html;
-
-	const field_uid = create_field_uid(schema.id, 'content');
-	
-	const error_input = document.querySelector(`input[data-fx-c-err="text_too_small"][data-fx-c-err-id="${field_uid}"]`);
-	assert_defined(error_input);
-
-	const error_message = error_input.value;
-	assert_contains(error_message, '<script>alert("xss")</script>');
-	assert_contains(error_message, '& "quotes"');
-}
-
 function test_context_modification_during_validation() {
 	const original_context = { user_id: 123, session: 'abc123' };
 
@@ -478,6 +449,5 @@ run_test('error message parameter substitution works', test_error_message_parame
 run_test('special characters and unicode work', test_special_characters_and_unicode);
 run_test('whitespace handling edge cases work', test_whitespace_handling_edge_cases);
 run_test('number parsing edge cases work', test_number_parsing_edge_cases);
-// run_test('error message encoding safety works', test_error_message_encoding_safety);
 run_test('context modification during validation works', test_context_modification_during_validation);
 run_test('multiple validation errors on single field work', test_multiple_validation_errors_on_single_field);

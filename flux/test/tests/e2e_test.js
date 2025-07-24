@@ -279,8 +279,6 @@ await run_e2e_test('form renders correctly with Vue', '/', async (page) => {
 });
 
 await run_e2e_test('successful form submission works', '/', async (page) => {
-	// page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-	
 	const username_uid = create_field_uid(test_schemas.complex.id, 'username');
 	const password_uid = create_field_uid(test_schemas.complex.id, 'password');
 	const age_uid = create_field_uid(test_schemas.complex.id, 'age');

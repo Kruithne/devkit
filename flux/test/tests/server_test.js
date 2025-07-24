@@ -1,6 +1,6 @@
 import { run_test, assert, assert_equal, assert_defined, assert_array_length } from '../test_api';
 import { form_create_schema, form_validate_req } from '../../src/flux';
-import { test_schemas, create_test_request, create_malformed_requests, create_field_uid, create_validation_test_cases } from '../test_utils';
+import { test_schemas, create_test_request, create_malformed_requests, create_field_uid } from '../test_utils';
 
 function test_form_create_schema() {
 	const schema = form_create_schema({
