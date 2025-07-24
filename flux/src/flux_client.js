@@ -228,6 +228,12 @@ export function form_component(app, container_id) {
 				
 				return error_message;
 			},
+
+			validation_error(err_code, field_id, params) {
+				const state = this.state[field_id];
+				state.has_error = true;
+				state.error = this.resolve_error_message({ err: err_code, params }, field_id);
+			},
 			
 			validate_field($field, field_id) {
 				const $input = $field.querySelector('.fx-input');
@@ -248,43 +254,29 @@ export function form_component(app, container_id) {
 				
 				// fields are required if fx-v-required is 'true' or undefined
 				const field_required = $field.getAttribute('fx-v-required') !== 'false';
-				if (field_required && value.length === 0) {
-					state.has_error = true;
-					state.error = this.resolve_error_message('required', field_id);
-					return;
-				}
+				if (field_required && value.length === 0)
+					return this.validation_error('required', field_id);
 				
 				if (input_type === 'number') {
 					const min = $field.getAttribute('fx-v-min');
 					const max = $field.getAttribute('fx-v-max');
 					
 					const num_value = parseFloat(value);
-					if (isNaN(num_value) && value !== '') {
-						state.has_error = true;
-						state.error = this.resolve_error_message('invalid_number', field_id);
-						return;
-					}
+
+					if (isNaN(num_value) && value !== '')
+						return this.validation_error('invalid_number', field_id);
 
 					let min_error = min !== null && num_value < parseFloat(min);
 					let max_error = max !== null && num_value > parseFloat(max);
 
-					if (min_error && max_error) {
-						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'number_range', params: { min, max } }, field_id);
-						return;
-					} else {
-						if (min_error) {
-							state.has_error = true;
-							state.error = this.resolve_error_message({ err: 'number_too_small', params: { min } }, field_id);
-							return;
-						}
+					if (min_error && max_error)
+						return this.validation_error('number_range', field_id, { min, max });
 
-						if (max_error) {
-							state.has_error = true;
-							state.error = this.resolve_error_message({ err: 'number_too_large', params: { max } }, field_id);
-							return;
-						}
-					}
+					if (min_error)
+						return this.validation_error('number_too_small', field_id, { min });
+
+					if (max_error)
+						return this.validation_error('number_too_large', field_id, { max });
 				} else {
 					const min = $field.getAttribute('fx-v-min-length');
 					const max = $field.getAttribute('fx-v-max-length');
@@ -292,23 +284,14 @@ export function form_component(app, container_id) {
 					let min_error = min !== null && value.length < parseInt(min);
 					let max_error = max !== null && value.length > parseInt(max);
 
-					if (min_error && max_error) {
-						state.has_error = true;
-						state.error = this.resolve_error_message({ err: 'text_range', params: { min, max } }, field_id);
-						return;
-					} else {
-						if (min_error) {
-							state.has_error = true;
-							state.error = this.resolve_error_message({ err: 'text_too_small', params: { min } }, field_id);
-							return;
-						}
+					if (min_error && max_error)
+						return this.validation_error('text_range', field_id, { min, max });
+				
+					if (min_error)
+						return this.validation_error('text_too_small', field_id, { min });
 
-						if (max_error) {
-							state.has_error = true;
-							state.error = this.resolve_error_message({ err: 'text_too_late', params: { max } }, field_id);
-							return;
-						}
-					}
+					if (max_error)
+						return this.validation_error('text_too_large', field_id, { max });
 				}
 			}
 		}
