@@ -1,12 +1,6 @@
 {
 	"type": "module",
 	"devDependencies": {
-		"@types/bun": "^1.2.19",
-		"spooder": "^5.1.5",
-		"happy-dom": "^18.0.1",
-		"puppeteer": "^24.15.0"
-	},
-	"scripts": {
-		"test": "bun test/run_tests.ts"
+		"@types/bun": "^1.2.19"
 	}
 }
