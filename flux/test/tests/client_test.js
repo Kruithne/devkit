@@ -426,7 +426,7 @@ run_test('validate field required works', test_validate_field_required);
 run_test('validate field text length works', test_validate_field_text_length);
 run_test('validate field number validation works', test_validate_field_number_validation);
 run_test('validate field invalid number works', test_validate_field_invalid_number);
-// run_test('optional field validation works', test_optional_field_validation);
+run_test('optional field validation works', test_optional_field_validation);
 run_test('set flow state works', test_set_flow_state);
 run_test('form data collection works', test_form_data_collection);
 run_test('context extraction works', test_context_extraction);

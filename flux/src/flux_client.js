@@ -257,6 +257,10 @@ export function form_component(app, container_id) {
 				if (field_required && value.length === 0)
 					return this.validation_error('required', field_id);
 				
+				// skip validation for optional empty fields
+				if (!field_required && value.length === 0)
+					return;
+				
 				if (input_type === 'number') {
 					const min = $field.getAttribute('fx-v-min');
 					const max = $field.getAttribute('fx-v-max');
