@@ -36,8 +36,11 @@ export function assert_equal<T>(actual: T, expected: T, message?: string): void 
 }
 
 export function assert_defined<T>(value: T | undefined | null, message?: string): asserts value is T {
-	if (value === undefined || value === null)
-		throw new Error(message || 'Expected value to be defined');
+	if (value === undefined || value === null) {
+		const error = new Error(message || 'Expected value to be defined');
+		Error.captureStackTrace?.(error, assert_defined);
+		throw error;
+	}
 }
 
 export function run_test(name: string, test_fn: () => void | Promise<void>): void {
@@ -47,14 +50,18 @@ export function run_test(name: string, test_fn: () => void | Promise<void>): voi
 			result
 				.then(() => log_success(`{✓} ${name}`))
 				.catch(error => {
-					log_error(`{✗} ${name}: {${error}}`);
+					log_error(`{✗} ${name}: {${error.message}}`);
+					if (error.stack)
+						console.error(error.stack.split('\n').slice(1).join('\n'));
 					process.exit(1);
 				});
 		} else {
 			log_success(`{✓} ${name}`);
 		}
 	} catch (error) {
-		log_error(`{✗} ${name}: {${error}}`);
+		log_error(`{✗} ${name}: {${error.message || error}}`);
+		if (error.stack)
+			console.error(error.stack.split('\n').slice(1).join('\n'));
 		process.exit(1);
 	}
 }
@@ -64,7 +71,9 @@ export async function run_async_test(name: string, test_fn: () => Promise<void>)
 		await test_fn();
 		log_success(`{✓} ${name}`);
 	} catch (error) {
-		log_error(`{✗} ${name}: {${error}}`);
+		log_error(`{✗} ${name}: {${error.message || error}}`);
+		if (error.stack)
+			console.error(error.stack.split('\n').slice(1).join('\n'));
 		process.exit(1);
 	}
 }
