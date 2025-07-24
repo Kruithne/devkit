@@ -44,7 +44,7 @@ type DeepPartial<T> = T extends object ? {
 	[P in keyof T]?: DeepPartial<T[P]>;
 } : T;
 
-type FormSchema<TId extends string = string, TFields extends Record<string, FormField> = Record<string, FormField>, TContext = any> = {
+export type FormSchema<TId extends string = string, TFields extends Record<string, FormField> = Record<string, FormField>, TContext = any> = {
 	id: TId;
 	endpoint: string;
 	fields: TFields;
@@ -236,7 +236,7 @@ export function form_render_html(schema: FormSchema): string {
 				$label.attr('fx-v-max-length', field.max_length.toString());
 		}
 
-		if (field.required)
+		if (field.required !== undefined)
 			$label.attr('fx-v-required', field.required.toString());
 
 		if (field.label) {

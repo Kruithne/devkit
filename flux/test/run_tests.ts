@@ -41,10 +41,25 @@ function log_bold(message: string): void {
 
 const tests_dir = join(import.meta.dirname, 'tests');
 
-async function run_all_tests() {
+async function run_tests() {
 	try {
-		const files = await readdir(tests_dir);
-		const test_files = files.filter(file => file.endsWith('_test.ts'));
+		const target_test = process.argv[2];
+		let test_files: string[];
+		
+		if (target_test) {
+			const test_file = target_test.endsWith('_test.js') ? target_test : `${target_test}_test.js`;
+			const test_exists = await readdir(tests_dir).then(files => files.includes(test_file));
+			
+			if (!test_exists) {
+				log_error(`Test file {${test_file}} not found in tests directory`);
+				process.exit(1);
+			}
+			
+			test_files = [test_file];
+		} else {
+			const files = await readdir(tests_dir);
+			test_files = files.filter(file => file.endsWith('_test.js'));
+		}
 		
 		let passed = 0;
 		let failed = 0;
@@ -101,4 +116,4 @@ function run_test_file(test_path: string): Promise<boolean> {
 	});
 }
 
-run_all_tests();
+run_tests();
