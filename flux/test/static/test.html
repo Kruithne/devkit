@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>Flux Test Page</title>
+		<script src="/static/test.js" type="module"></script>
+		<style>
+			.fx-form { display: flex; flex-direction: column; border: 1px solid red; padding: 10px; gap: 10px; margin-top: 20px; }
+			.fx-field { border: 1px solid blue; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+			.fx-input { border: 1px solid orange; padding: 5px; }
+			.fx-label { border: 1px dotted purple; padding: 10px; }
+			.fx-error-text { color: red; font-weight: bold; }
+			.fx-error { background: rgba(255, 0, 0, 0.5); }
+			.fx-error .fx-input { border: 1px solid red; }
+			.fx-state-pending { background-color: rgba(255, 165, 0, 0.5); }
+			.fx-state-success { background-color: rgba(0, 128, 0, 0.5); }
+			.fx-state-error { background-color: rgba(255, 0, 0, 0.5); }
+		</style>
+	</head>
+	<body>
+		<div id="container">
+			<h1>Flux Form Test</h1>
+			{{ form }}
+		</div>
+	</body>
+</html>
