@@ -44,7 +44,7 @@ const tests_dir = join(import.meta.dirname, 'tests');
 async function run_all_tests() {
 	try {
 		const files = await readdir(tests_dir);
-		const test_files = files.filter(file => file.endsWith('.ts'));
+		const test_files = files.filter(file => file.endsWith('_test.ts'));
 		
 		let passed = 0;
 		let failed = 0;
