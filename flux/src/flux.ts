@@ -45,8 +45,8 @@ type DeepPartial<T> = T extends object ? {
 } : T;
 
 export type FormSchema<TId extends string = string, TFields extends Record<string, FormField> = Record<string, FormField>, TContext = any> = {
-	id: TId;
-	endpoint: string;
+	id?: TId;
+	endpoint?: string;
 	fields: TFields;
 	context?: TContext;
 	errors?: ErrorMap;
@@ -93,7 +93,7 @@ export function form_validate_req<T extends FormSchema>(
 		};
 
 	for (const [field_id, field] of Object.entries(schema.fields)) {
-		const uid = `${schema.id}-${field_id}`;
+		const uid = schema.id ? `${schema.id}-${field_id}` : field_id;
 		const value = json.fields[uid];
 
 		// we are considering undefined, null, or an empty (trimmed) string
@@ -189,6 +189,12 @@ function add_custom_errors($form: ReturnType<typeof element>, errors?: ErrorMap,
 }
 
 export function form_render_html(schema: FormSchema): string {
+	if (schema.endpoint === undefined)
+		throw new Error('endpoint is required for form generation');
+	
+	if (schema.id === undefined)
+		throw new Error('id is required for form generation');
+
 	const $container = element('div')
 		.attr('is', `vue:component_${schema.id}`)
 		.attr('id', schema.id)

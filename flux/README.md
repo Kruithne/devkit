@@ -109,6 +109,34 @@ form_component(app: VueApp, form_id: string): VueComponent
 }
 ```
 
+## Pure Form Validation
+
+While `form_validate_req` is intended for use with an end-to-end flux setup, it supports being used for pure schema validation.
+
+```ts
+const my_schema = {
+	test: {
+		type: 'string',
+		max_length: 10
+	}
+};
+
+server.json('/api/test', (req, url, json) => {
+	const validate = form_validate_req(my_schema, json);
+	if (validate.error)
+		return validate;
+
+	console.log(validate.fields.test);
+});
+
+// client
+fetch('/api/test', {
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({ test: 'foo' })
+});
+```
+
 ## Context
 
 The `.context` property can be used to define serializable data on the schema which will be available on the endpoint.
