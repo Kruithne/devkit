@@ -27,6 +27,11 @@ type FormFieldBase = {
 	required?: boolean;
 };
 
+type FormButton = {
+	text?: string;
+	pending_text?: string;
+};
+
 type FormField = FormFieldBase & ({
 	type: 'number';
 	min?: number;
@@ -55,6 +60,9 @@ export type FormSchema<TId extends string = string, TFields extends Record<strin
 	fields: TFields;
 	context?: TContext;
 	errors?: ErrorMap;
+	buttons?: {
+		submit?: FormButton;
+	};
 };
 
 type ValidationResult<T extends FormSchema> = 
@@ -296,11 +304,17 @@ export function form_render_html(schema: FormSchema): string {
 			$input.attr('placeholder', field.placeholder);
 	}
 
-	// placeholder
+	const submit_text = schema.buttons?.submit?.text ?? 'Submit';
+	const submit_pending_text = schema.buttons?.submit?.pending_text;
+
 	const $submit = $form.child('input')
 		.attr('type', 'button')
-		.attr('value', 'Submit')
 		.attr('@click', 'submit');
+
+	if (submit_pending_text !== undefined)
+		$submit.attr(':value', `pending ? '${submit_pending_text}' : '${submit_text}'`);
+	else
+		$submit.attr('value', submit_text);
 
 	return $container.toString();
 }

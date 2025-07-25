@@ -79,9 +79,10 @@ export function form_component(app, container_id) {
 					error: ''
 				};
 			}
-			
+
 			return {
-				state
+				state,
+				pending: false
 			};
 		},
 		
@@ -90,6 +91,8 @@ export function form_component(app, container_id) {
 				const classes = this.$refs.form.classList;
 				classes.remove('fx-state-success', 'fx-state-error', 'fx-state-pending');
 				classes.add('fx-state-' + state);
+				
+				this.pending = state === 'pending';
 			},
 
 			emit_error(error_obj) {

@@ -30,6 +30,13 @@ const test_form = form_create_schema({
 			min: 18,
 			max: 99
 		}
+	},
+
+	buttons: {
+		submit: {
+			text: 'Create Account',
+			pending_text: 'Creating...'
+		}
 	}
 });
 ```
@@ -107,6 +114,13 @@ form_component(app: VueApp, form_id: string): VueComponent
 		}
 	},
 
+	buttons?: {
+		submit?: {
+			text?: string; // defaults to 'Submit'
+			pending_text?: string; // shown while form is submitting
+		}
+	},
+
 	errors: {
 		required: 'You need to enter something here!'
 		// see: custom errors
@@ -168,6 +182,30 @@ server.json('/api/submit', (req, url, json) => {
 
 > [!CAUTION]
 > Do not include sensitive data in the context and always validate the returned context within the endpoint. This data is serialized within the form but is trivial for clients to view and tamper. Consider the context data public and untrusted.
+
+## Button Customization
+
+You can customize the submit button text and provide alternative text to show while the form is being submitted.
+
+```ts
+const form = form_create_schema({
+	id: 'my-form',
+	endpoint: '/api/submit',
+	
+	buttons: {
+		submit: {
+			text: 'Register Now',           // default button text
+			pending_text: 'Registering...' // text shown while submitting
+		}
+	},
+	
+	fields: {
+		// ... your fields
+	}
+});
+```
+
+If no `buttons` configuration is provided, the submit button will display "Submit" by default. The `pending_text` is optional - if not provided, the button text will remain unchanged during form submission.
 
 ## Event Handling
 
