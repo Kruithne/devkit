@@ -98,6 +98,7 @@ form_component(app: VueApp, form_id: string): VueComponent
 			label?: string;
 			placeholder?: string;
 			required?: boolean; // defaults to true
+			match_field?: string; // field name to match against
 		},
 
 		text_field: {
@@ -207,6 +208,42 @@ const form = form_create_schema({
 
 If no `buttons` configuration is provided, the submit button will display "Submit" by default. The `pending_text` is optional - if not provided, the button text will remain unchanged during form submission.
 
+## Field Matching
+
+The `match_field` property allows you to validate that two fields have the same value, commonly used for password confirmation or email verification.
+
+```ts
+const registration_form = form_create_schema({
+	id: 'registration',
+	endpoint: '/api/register',
+	
+	fields: {
+		password: {
+			type: 'password',
+			label: 'Choose a strong password:',
+			min_length: 8
+		},
+		
+		password_confirm: {
+			type: 'password',
+			match_field: 'password',
+			label: 'Re-type your password again:'
+		},
+		
+		email: {
+			type: 'email',
+			label: 'Email address:'
+		},
+		
+		email_confirm: {
+			type: 'email',
+			match_field: 'email',
+			label: 'Confirm email address:'
+		}
+	}
+});
+```
+
 ## Event Handling
 
 The `form_component` function returns an event bus which can be used to monitor the form flow.
@@ -297,7 +334,8 @@ Errors in flux are configured on the server and propagated automatically to the 
 	text_too_large: 'Must not exceed {max} characters',
 	text_range: 'Must be between {min} and {max} characters',
 	regex_validation: 'Invalid format',
-	invalid_email: 'Please enter a valid email address'
+	invalid_email: 'Please enter a valid email address',
+	field_match_error: 'The fields do not match'
 };
 ```
 

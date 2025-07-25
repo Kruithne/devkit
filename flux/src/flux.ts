@@ -14,7 +14,8 @@ const default_error_messages = [
 	'text_too_large',
 	'text_range',
 	'regex_validation',
-	'invalid_email'
+	'invalid_email',
+	'field_match_error'
 ] as const;
 
 type ErrorCode = typeof default_error_messages[number];
@@ -25,6 +26,7 @@ type FormFieldBase = {
 	placeholder?: string;
 	errors?: ErrorMap;
 	required?: boolean;
+	match_field?: string;
 };
 
 type FormButton = {
@@ -188,6 +190,24 @@ export function form_validate_req<T extends FormSchema>(
 		}
 	}
 
+	// match_field validation
+	for (const [field_id, field] of Object.entries(schema.fields)) {
+		if (!field.match_field)
+			continue;
+
+		const uid = schema.id ? `${schema.id}-${field_id}` : field_id;
+		const target_uid = schema.id ? `${schema.id}-${field.match_field}` : field.match_field;
+
+		// skip if either field already has errors or is missing
+		if (field_errors[uid] || field_errors[target_uid] || !(field_id in validated_fields) || !(field.match_field in validated_fields))
+			continue;
+
+		if (validated_fields[field_id] !== validated_fields[field.match_field]) {
+			field_errors[uid] = 'field_match_error';
+			field_errors[target_uid] = 'field_match_error';
+		}
+	}
+
 	if (Object.keys(field_errors).length > 0) {
 		return {
 			error: 'generic_validation',
@@ -275,6 +295,11 @@ export function form_render_html(schema: FormSchema): string {
 
 		if (field.required !== undefined)
 			$label.attr('fx-v-required', field.required.toString());
+
+		if (field.match_field !== undefined) {
+			const match_field_uid = `${schema.id}-${field.match_field}`;
+			$label.attr('fx-v-match-field', match_field_uid);
+		}
 
 		if (field.label) {
 			$label.child('span')
