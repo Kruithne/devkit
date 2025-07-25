@@ -47,7 +47,8 @@ const default_error_messages = {
 	number_range: 'Must be between {min} and {max}',
 	text_too_small: 'Must be at least {min} characters',
 	text_too_large: 'Must not exceed {max} characters',
-	text_range: 'Must be between {min} and {max} characters'
+	text_range: 'Must be between {min} and {max} characters',
+	regex_validation: 'Invalid format'
 };
 
 export function form_component(app, container_id) {
@@ -296,6 +297,13 @@ export function form_component(app, container_id) {
 
 					if (max_error)
 						return this.validation_error('text_too_large', field_id, { max });
+
+					const regex = $field.getAttribute('fx-v-regex');
+					if (regex !== null) {
+						const regex_pattern = new RegExp(regex);
+						if (!regex_pattern.test(value))
+							return this.validation_error('regex_validation', field_id);
+					}
 				}
 			}
 		}

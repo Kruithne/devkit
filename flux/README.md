@@ -93,6 +93,7 @@ form_component(app: VueApp, form_id: string): VueComponent
 			type: 'text' | 'password';
 			min_length?: number;
 			max_length?: number;
+			regex?: string;
 		},
 
 		number_field: {
@@ -252,7 +253,8 @@ Errors in flux are configured on the server and propagated automatically to the 
 	number_range: 'Must be between {min} and {max}',
 	text_too_small: 'Must be at least {min} characters',
 	text_too_large: 'Must not exceed {max} characters',
-	text_range: 'Must be between {min} and {max} characters'
+	text_range: 'Must be between {min} and {max} characters',
+	regex_validation: 'Invalid format'
 };
 ```
 

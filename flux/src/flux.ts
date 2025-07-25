@@ -10,7 +10,8 @@ const default_error_messages = [
 	'number_range',
 	'text_too_small',
 	'text_too_large',
-	'text_range'
+	'text_range',
+	'regex_validation'
 ] as const;
 
 type ErrorCode = typeof default_error_messages[number];
@@ -31,6 +32,7 @@ type FormField = FormFieldBase & ({
 	type: 'text' | 'password';
 	min_length?: number;
 	max_length?: number;
+	regex?: string;
 });
 
 type InferFieldType<T extends FormField> = T extends { type: 'number' } ? number : string;
@@ -156,6 +158,14 @@ export function form_validate_req<T extends FormSchema>(
 				}
 			}
 
+			if (field.regex !== undefined) {
+				const regex = new RegExp(field.regex);
+				if (!regex.test(str_value)) {
+					field_errors[uid] = 'regex_validation';
+					continue;
+				}
+			}
+
 			validated_fields[field_id] = str_value;
 		}
 	}
@@ -240,6 +250,9 @@ export function form_render_html(schema: FormSchema): string {
 
 			if (field.max_length !== undefined)
 				$label.attr('fx-v-max-length', field.max_length.toString());
+
+			if (field.regex !== undefined)
+				$label.attr('fx-v-regex', field.regex);
 		}
 
 		if (field.required !== undefined)
