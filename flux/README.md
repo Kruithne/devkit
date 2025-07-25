@@ -21,6 +21,10 @@ const test_form = form_create_schema({
 			max_length: 100
 		},
 
+		email: {
+			type: 'email'
+		},
+
 		age: {
 			type: 'number',
 			min: 18,
@@ -90,7 +94,7 @@ form_component(app: VueApp, form_id: string): VueComponent
 		},
 
 		text_field: {
-			type: 'text' | 'password';
+			type: 'text' | 'password' | 'email'; // email automatically validates format
 			min_length?: number;
 			max_length?: number;
 			regex?: string;
@@ -254,7 +258,8 @@ Errors in flux are configured on the server and propagated automatically to the 
 	text_too_small: 'Must be at least {min} characters',
 	text_too_large: 'Must not exceed {max} characters',
 	text_range: 'Must be between {min} and {max} characters',
-	regex_validation: 'Invalid format'
+	regex_validation: 'Invalid format',
+	invalid_email: 'Please enter a valid email address'
 };
 ```
 

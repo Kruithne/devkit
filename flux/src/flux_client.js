@@ -37,6 +37,8 @@ export function create_event_bus() {
 	};
 }
 
+const email_regex = /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}$/i;
+
 const default_error_messages = {
 	generic_validation: 'There was an issue with one or more fields',
 	generic_malformed: 'Malformed request',
@@ -48,7 +50,8 @@ const default_error_messages = {
 	text_too_small: 'Must be at least {min} characters',
 	text_too_large: 'Must not exceed {max} characters',
 	text_range: 'Must be between {min} and {max} characters',
-	regex_validation: 'Invalid format'
+	regex_validation: 'Invalid format',
+	invalid_email: 'Please enter a valid email address'
 };
 
 export function form_component(app, container_id) {
@@ -297,6 +300,9 @@ export function form_component(app, container_id) {
 
 					if (max_error)
 						return this.validation_error('text_too_large', field_id, { max });
+
+					if (input_type === 'email' && !email_regex.test(value))
+						return this.validation_error('invalid_email', field_id);
 
 					const regex = $field.getAttribute('fx-v-regex');
 					if (regex !== null) {

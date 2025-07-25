@@ -1,5 +1,7 @@
 import { element } from '../../weave/src/weave';
 
+const email_regex = /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}$/i;
+
 const default_error_messages = [
 	'generic_validation',
 	'generic_malformed',
@@ -11,7 +13,8 @@ const default_error_messages = [
 	'text_too_small',
 	'text_too_large',
 	'text_range',
-	'regex_validation'
+	'regex_validation',
+	'invalid_email'
 ] as const;
 
 type ErrorCode = typeof default_error_messages[number];
@@ -29,7 +32,7 @@ type FormField = FormFieldBase & ({
 	min?: number;
 	max?: number;
 } | {
-	type: 'text' | 'password';
+	type: 'text' | 'password' | 'email';
 	min_length?: number;
 	max_length?: number;
 	regex?: string;
@@ -154,6 +157,13 @@ export function form_validate_req<T extends FormSchema>(
 
 				if (max_error) {
 					field_errors[uid] = { err: 'text_too_large', params: { max: field.max_length } };
+					continue;
+				}
+			}
+
+			if (field.type === 'email') {
+				if (!email_regex.test(str_value)) {
+					field_errors[uid] = 'invalid_email';
 					continue;
 				}
 			}
