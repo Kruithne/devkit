@@ -77,6 +77,7 @@ export function form_component(app, container_id) {
 			for (const field of fields) {
 				state[field.getAttribute('data-fx-field-id')] = {
 					has_error: false,
+					error_code: '',
 					error: ''
 				};
 			}
@@ -171,7 +172,8 @@ export function form_component(app, container_id) {
 								const state = this.state[field_id];
 								if (state) {
 									state.has_error = true;
-									state.error = this.resolve_error_message(data.field_errors[field_id], field_id);
+									state.error_code = data.field_errors[field_id];
+									state.error = this.resolve_error_message(state.error_code, field_id);
 								}
 							}
 						}
@@ -237,9 +239,16 @@ export function form_component(app, container_id) {
 				return error_message;
 			},
 
+			clear_state_error(state) {
+				state.has_error = false;
+				state.error = '';
+				state.error_code = '';
+			},
+
 			validation_error(err_code, field_id, params) {
 				const state = this.state[field_id];
 				state.has_error = true;
+				state.error_code = err_code;
 				state.error = this.resolve_error_message({ err: err_code, params }, field_id);
 			},
 			
@@ -253,9 +262,7 @@ export function form_component(app, container_id) {
 				if (!state)
 					return;
 				
-				// clear error state
-				state.has_error = false;
-				state.error = '';		
+				this.clear_state_error(state);
 				
 				const value = $input.value?.trim();
 				const input_type = $input.getAttribute('type');
@@ -316,52 +323,39 @@ export function form_component(app, container_id) {
 					}
 				}
 
-				// match_field validation
+				// compare this field with a match target, if any
 				const match_field = $field.getAttribute('fx-v-match-field');
 				if (match_field !== null) {
 					const $match_field = this.$refs.form.querySelector(`[data-fx-field-id='${match_field}']`);
-					if ($match_field) {
-						const $match_input = $match_field.querySelector('.fx-input');
-						if ($match_input && $match_input.value?.trim() !== value) {
-							this.validation_error('field_match_error', field_id);
-							return this.validation_error('field_match_error', match_field);
-						} else if ($match_input && $match_input.value?.trim() === value) {
-							// clear error on matched field if it was previously in error state
-							const match_state = this.state[match_field];
-							if (match_state && match_state.has_error && match_state.error === this.resolve_error_message({ err: 'field_match_error' }, match_field)) {
-								match_state.has_error = false;
-								match_state.error = '';
-							}
-						}
+					const $match_input = $match_field?.querySelector('.fx-input');
+
+					if ($match_input?.value?.trim() !== value) {
+						this.validation_error('field_match_error', field_id);
+						this.validation_error('field_match_error', match_field);
+						return;
 					}
+					
+					const match_state = this.state[match_field];
+					if (match_state?.error_code == 'field_match_error')
+						this.clear_state_error(match_state);
 				}
 
-				// check if this field is the target of another field's match_field
-				for (const other_field_id in this.state) {
-					if (other_field_id === field_id)
-						continue;
+				// re-validate any fields that target this field as a match
+				const match_fields = this.$refs.form.querySelectorAll(`[fx-v-match-field='${field_id}']`);
+				for (const $other_field of match_fields) {
+					const other_field_id = $other_field.getAttribute('data-fx-field-id');
+					const $other_input = $other_field.querySelector('.fx-input');
+					const other_value = $other_input?.value?.trim();
 
-					const $other_field = this.$refs.form.querySelector(`[data-fx-field-id='${other_field_id}']`);
-					if ($other_field) {
-						const other_match_field = $other_field.getAttribute('fx-v-match-field');
-						if (other_match_field === field_id) {
-							const $other_input = $other_field.querySelector('.fx-input');
-							if ($other_input) {
-								const other_value = $other_input.value?.trim();
-								if (other_value && other_value !== value) {
-									this.validation_error('field_match_error', field_id);
-									return this.validation_error('field_match_error', other_field_id);
-								} else if (other_value === value) {
-									// clear error on the other field if it was previously in error state
-									const other_state = this.state[other_field_id];
-									if (other_state && other_state.has_error && other_state.error === this.resolve_error_message({ err: 'field_match_error' }, other_field_id)) {
-										other_state.has_error = false;
-										other_state.error = '';
-									}
-								}
-							}
-						}
+					if (other_value !== value) {
+						this.validation_error('field_match_error', field_id);
+						this.validation_error('field_match_error', other_field_id);
+						return;
 					}
+					
+					const other_state = this.state[other_field_id];
+					if (other_state?.error_code == 'field_match_error')
+						this.clear_state_error(other_state);
 				}
 			}
 		}
