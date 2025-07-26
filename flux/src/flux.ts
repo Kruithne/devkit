@@ -259,8 +259,8 @@ export function form_render_html(schema: FormSchema): string {
 		const encoded = btoa(JSON.stringify(schema.context));
 		$form.child('input')
 			.attr('type', 'hidden')
-			.attr('id', 'fx-context')
-			.attr('value', encoded);
+			.attr('value', encoded)
+			.cls('fx-context');
 	}
 
 	let tab_index = 1;

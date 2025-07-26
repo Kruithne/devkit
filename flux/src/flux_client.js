@@ -143,7 +143,7 @@ export function form_component(app, container_id) {
 						form_data_fields[field_id] = $input.value;
 				}
 				
-				const $context = $form.querySelector('#fx-context');
+				const $context = $form.querySelector('.fx-context');
 				if ($context)
 					form_data.context = $context.value;
 				
