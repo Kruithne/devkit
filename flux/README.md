@@ -399,3 +399,36 @@ The `raise_field_error(field_name, message)` method:
 - Returns the proper error structure expected by the flux client
 - Highlights the specific field with the custom error message
 - Allows you to perform userland validation without modifying your schema
+
+## Generic Form Errors in Endpoints
+
+For application errors that affect the entire form (not specific fields), you can raise generic form errors using the `raise_form_error` method:
+
+```ts
+server.json('/api/register', async (req, url, json) => {
+	const form = form_validate_req(registration_form, json);
+	if (form.error)
+		return form;
+
+	// Generic form-level errors
+	if (await system_maintenance_active())
+		return form.raise_form_error('System is currently under maintenance. Please try again later.');
+	
+	if (await account_is_suspended(form.fields.username))
+		return form.raise_form_error('Your account has been temporarily suspended');
+	
+	// Field-specific errors can still be used alongside form errors
+	if (await user_is_username_registered(form.fields.username))
+		return form.raise_field_error('username', 'That username is already taken');
+
+	// Continue with registration logic...
+	return { success: true };
+});
+```
+
+The `raise_form_error(message)` method:
+- Displays a generic error message above the form fields
+- Renders in an unstyled `<p class="fx-form-error">` element for custom styling
+- Can be used alongside field-specific errors
+- Error message clears when the form is resubmitted
+- Automatically sets the form to an error state with the `fx-state-error` CSS class

@@ -42,6 +42,7 @@ const email_regex = /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-
 const default_error_messages = {
 	generic_validation: 'There was an issue with one or more fields',
 	generic_malformed: 'Malformed request',
+	generic_form_error: 'An error occurred while processing the form',
 	required: 'This field is required',
 	invalid_number: 'Must be a valid number',
 	number_too_small: 'Must be at least {min}',
@@ -84,7 +85,8 @@ export function form_component(app, container_id) {
 
 			return {
 				state,
-				pending: false
+				pending: false,
+				form_error_message: ''
 			};
 		},
 		
@@ -95,6 +97,9 @@ export function form_component(app, container_id) {
 				classes.add('fx-state-' + state);
 				
 				this.pending = state === 'pending';
+				
+				if (state === 'pending')
+					this.form_error_message = '';
 			},
 
 			emit_error(error_obj) {
@@ -177,10 +182,12 @@ export function form_component(app, container_id) {
 								}
 							}
 						}
+
+						this.form_error_message = data.form_error_message ?? this.resolve_error_message(data.error);
 						
 						return this.emit_error({
 							code: 'form_error',
-							error: this.resolve_error_message(data.error),
+							error: this.form_error_message,
 							field_errors: data.field_errors
 						});
 					} else {

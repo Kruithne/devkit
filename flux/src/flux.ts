@@ -5,6 +5,7 @@ const email_regex = /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-
 const default_error_messages = [
 	'generic_validation',
 	'generic_malformed',
+	'generic_form_error',
 	'required',
 	'invalid_number',
 	'number_too_small',
@@ -86,11 +87,20 @@ class FormValidationResult<T extends FormSchema> {
 			}
 		};
 	}
+
+	raise_form_error(message: string): ValidationErrorResult {
+		return {
+			error: 'generic_form_error',
+			field_errors: {},
+			form_error_message: message
+		};
+	}
 }
 
 type ValidationErrorResult = {
 	error: ErrorCode;
 	field_errors: FieldErrors;
+	form_error_message?: string;
 	fields?: never;
 	context?: never;
 };
@@ -279,6 +289,12 @@ export function form_render_html(schema: FormSchema): string {
 			.attr('value', encoded)
 			.cls('fx-context');
 	}
+
+	// generic form error display
+	$form.child('p')
+		.cls('fx-form-error')
+		.attr('v-if', 'form_error_message')
+		.text('{{ form_error_message }}');
 
 	let tab_index = 1;
 	for (const [field_id, field] of Object.entries(schema.fields)) {
