@@ -43,6 +43,8 @@ const default_error_messages = {
 	generic_validation: 'There was an issue with one or more fields',
 	generic_malformed: 'Malformed request',
 	generic_form_error: 'An error occurred while processing the form',
+	http_error: 'HTTP Error {status_code}: {status_text}',
+	generic_error: 'Internal Error: {error}',
 	required: 'This field is required',
 	invalid_number: 'Must be a valid number',
 	number_too_small: 'Must be at least {min}',
@@ -162,6 +164,11 @@ export function form_component(app, container_id) {
 					});
 					
 					if (response.status !== 200) {
+						this.form_error_message = this.resolve_error_message({
+							err: 'http_error',
+							params: { status_code: response.status, status_text: response.statusText }
+						});
+						
 						return this.emit_error({
 							code: 'http_error',
 							status_text: response.statusText,
@@ -195,6 +202,11 @@ export function form_component(app, container_id) {
 						events.emit('submit_success', data);
 					}
 				} catch (error) {
+					this.form_error_message = this.resolve_error_message({
+						err: 'generic_error',
+						params: { error: error.toString() }
+					});
+					
 					this.emit_error({
 						code: 'generic_error',
 						error: error.toString()

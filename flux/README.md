@@ -302,9 +302,15 @@ Below are the possible error codes:
 | Code | Reason | Parameters |
 | --- | --- | --- |
 | client_side_validation_error | One or more fields failed client-side validation | field_errors[] |
-| http_error | Failed to send the HTTP request | status_code: number, status_text: string |
+| http_error | Failed to send the HTTP request (auto-displays as form error) | status_code: number, status_text: string |
 | form_error | One or more fields failed server-side validation | field_errors[] |
-| generic_error | Generic exception | error: string |
+| generic_error | Generic exception (auto-displays as form error) | error: string |
+
+**Automatic Error Display**: `http_error` and `generic_error` are automatically displayed as form-level errors using the templates:
+- `http_error`: "HTTP Error {status_code}: {status_text}" (e.g., "HTTP Error 500: Internal Server Error")  
+- `generic_error`: "Internal Error: {error}" (e.g., "Internal Error: Failed to fetch")
+
+These default messages can be overridden using the form schema's `errors` property. The `submit_failure` event still fires for custom handling.
 
 In the event of both `client_side_validation_error` and `form_error`, specific field errors will be automatically propgated to the component to render a relevant error message.
 
