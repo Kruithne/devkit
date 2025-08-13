@@ -2,6 +2,8 @@ import { element } from '../../weave/src/weave';
 
 const email_regex = /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}$/i;
 
+let global_tab_index = 1;
+
 const default_error_messages = [
 	'generic_validation',
 	'generic_malformed',
@@ -296,7 +298,6 @@ export function form_render_html(schema: FormSchema): string {
 		.attr('v-if', 'form_error_message')
 		.text('{{ form_error_message }}');
 
-	let tab_index = 1;
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const unique_field_id = `${schema.id}-${field_id}`;
 
@@ -348,12 +349,12 @@ export function form_render_html(schema: FormSchema): string {
 		const $input = $label.child('input')
 			.attr('type', field.type === 'email' ? 'text' : field.type)
 			.attr('id', unique_field_id)
-			.attr('tabindex', tab_index.toString())
+			.attr('tabindex', global_tab_index.toString())
 			.attr('@blur', `handle_field_blur('${unique_field_id}')`)
 			.attr('@input', `handle_field_input('${unique_field_id}')`)
 			.cls('fx-input', `fx-input-${field.type}`);
 
-		tab_index++;
+		global_tab_index++;
 
 		if (field.type !== 'number' && field.max_length !== undefined)
 			$input.attr('maxlength', field.max_length.toString());
