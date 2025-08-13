@@ -110,6 +110,9 @@ export function form_component(app, container_id) {
 			},
 
 			async submit() {
+				if (this.pending)
+					return;
+					
 				this.set_flow_state('pending');
 				events.emit('submit_pending');
 				
