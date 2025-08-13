@@ -242,7 +242,7 @@ export function form_component(app, container_id) {
 				if ($global_cst)
 					return $global_cst.value;
 				
-				return default_error_messages[error_code];
+				return default_error_messages[error_code] || error_code;
 			},
 			
 			resolve_error_message(message, field_id) {
