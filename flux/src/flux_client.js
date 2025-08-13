@@ -88,6 +88,7 @@ export function form_component(app, container_id) {
 			return {
 				state,
 				pending: false,
+				disabled: false,
 				form_error_message: ''
 			};
 		},
@@ -95,7 +96,7 @@ export function form_component(app, container_id) {
 		methods: {
 			set_flow_state(state) {
 				const classes = this.$refs.form.classList;
-				classes.remove('fx-state-success', 'fx-state-error', 'fx-state-pending');
+				classes.remove('fx-state-success', 'fx-state-error', 'fx-state-pending', 'fx-state-disabled');
 				classes.add('fx-state-' + state);
 				
 				this.pending = state === 'pending';
@@ -110,7 +111,7 @@ export function form_component(app, container_id) {
 			},
 
 			async submit() {
-				if (this.pending)
+				if (this.pending || this.disabled)
 					return;
 					
 				this.set_flow_state('pending');
@@ -379,9 +380,25 @@ export function form_component(app, container_id) {
 					if (other_state?.error_code == 'field_match_error')
 						this.clear_state_error(other_state);
 				}
+			},
+
+			disable() {
+				this.disabled = true;
+				this.$refs.form.classList.add('fx-state-disabled');
+			},
+
+			enable() {
+				this.disabled = false;
+				this.$refs.form.classList.remove('fx-state-disabled');
 			}
 		}
 	});
 	
-	return events;
+	const component_instance = app.mount(`#${container_id}`);
+	
+	return {
+		events,
+		disable: () => component_instance.disable(),
+		enable: () => component_instance.enable()
+	};
 }
