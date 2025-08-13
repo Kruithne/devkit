@@ -67,21 +67,37 @@ export type FormSchema<TId extends string = string, TFields extends Record<strin
 	};
 };
 
-type ValidationResult<T extends FormSchema> = 
-	| {
-		error: ErrorCode;
-		field_errors: FieldErrors;
-		fields?: never;
-		context?: never;
-	}
-	| {
-		error?: never;
-		field_errors?: never;
-		fields: InferSchemaFields<T>;
-		context?: T extends FormSchema<any, any, infer C> ? DeepPartial<C> : never;
-	};
+class FormValidationResult<T extends FormSchema> {
+	public error?: never;
+	public field_errors?: never;
+	
+	constructor(
+		public fields: InferSchemaFields<T>,
+		public context: T extends FormSchema<any, any, infer C> ? DeepPartial<C> : never,
+		private schema: T
+	) {}
 
-type FieldError = ErrorCode | {
+	raise_field_error(field_name: keyof T['fields'], message: string): ValidationErrorResult {
+		const field_id = this.schema.id ? `${this.schema.id}-${String(field_name)}` : String(field_name);
+		return {
+			error: 'generic_validation',
+			field_errors: {
+				[field_id]: message
+			}
+		};
+	}
+}
+
+type ValidationErrorResult = {
+	error: ErrorCode;
+	field_errors: FieldErrors;
+	fields?: never;
+	context?: never;
+};
+
+type ValidationResult<T extends FormSchema> = ValidationErrorResult | FormValidationResult<T>;
+
+type FieldError = ErrorCode | string | {
 	err: ErrorCode;
 	params: Record<string, any>;
 };
@@ -215,10 +231,11 @@ export function form_validate_req<T extends FormSchema>(
 		};
 	}
 
-	return {
-		fields: validated_fields as InferSchemaFields<T>,
-		context: json.context ? JSON.parse(atob(json.context)) : undefined
-	};
+	return new FormValidationResult(
+		validated_fields as InferSchemaFields<T>,
+		json.context ? JSON.parse(atob(json.context)) : undefined,
+		schema
+	);
 }
 
 function add_custom_errors($form: ReturnType<typeof element>, errors?: ErrorMap, field_id?: string) {

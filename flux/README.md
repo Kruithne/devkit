@@ -54,7 +54,11 @@ server.json('/api/submit-form', (req, url, json) => {
 	const form = form_validate_req(test_form, json);
 
 	if (form.error)
-		return form.error;
+		return form;
+
+	// Custom userland validation with field-specific errors
+	if (await user_is_username_taken(form.fields.name))
+		return form.raise_field_error('name', 'That username is already taken');
 
 	form.fields.name; // validation + typing
 });
@@ -367,3 +371,31 @@ Errors can be defined per-field as well, allowing more refined control over erro
 	}
 }
 ```
+
+## Custom Field Errors in Endpoints
+
+For validation logic specific to your application (like checking if a username is already taken), you can raise field-specific errors directly in your endpoints using the `raise_field_error` method:
+
+```ts
+server.json('/api/register', async (req, url, json) => {
+	const form = form_validate_req(registration_form, json);
+	if (form.error)
+		return form;
+
+	// Custom validation with field-specific error highlighting
+	if (await user_is_username_registered(form.fields.username))
+		return form.raise_field_error('username', 'That username is already taken');
+	
+	if (await user_is_email_registered(form.fields.email))
+		return form.raise_field_error('email', 'That email address is already registered');
+
+	// Continue with registration logic...
+	return { success: true };
+});
+```
+
+The `raise_field_error(field_name, message)` method:
+- Automatically handles field ID generation (`schema.id-field_name`)
+- Returns the proper error structure expected by the flux client
+- Highlights the specific field with the custom error message
+- Allows you to perform userland validation without modifying your schema
