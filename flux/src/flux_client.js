@@ -102,8 +102,13 @@ export function form_component(app, container_id) {
 				
 				this.pending = state === 'pending';
 				
-				if (state === 'pending')
+				if (state === 'pending') {
 					this.form_error_message = '';
+					this.set_fields_disabled(true);
+				} else {
+					if (!this.disabled)
+						this.set_fields_disabled(false);
+				}
 			},
 
 			emit_error(error_obj) {
@@ -208,6 +213,7 @@ export function form_component(app, container_id) {
 						if (data.flux_disable === true) {
 							this.disabled = true;
 							this.$refs.form.classList.add('fx-state-disabled');
+							this.set_fields_disabled(true);
 						}
 						
 						events.emit('submit_success', data);
@@ -280,6 +286,17 @@ export function form_component(app, container_id) {
 				state.has_error = true;
 				state.error_code = err_code;
 				state.error = this.resolve_error_message({ err: err_code, params }, field_id);
+			},
+
+			set_fields_disabled(disabled) {
+				const $inputs = this.$refs.form.querySelectorAll('.fx-input');
+				for (const $input of $inputs) {
+					if (disabled) {
+						$input.setAttribute('disabled', 'disabled');
+					} else {
+						$input.removeAttribute('disabled');
+					}
+				}
 			},
 			
 			validate_field($field, field_id) {
