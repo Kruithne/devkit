@@ -96,7 +96,8 @@ export function form_component(app, container_id) {
 		methods: {
 			set_flow_state(state) {
 				const classes = this.$refs.form.classList;
-				classes.remove('fx-state-success', 'fx-state-error', 'fx-state-pending', 'fx-state-disabled');
+				classes.remove('fx-state-success', 'fx-state-error', 'fx-state-pending');
+				
 				classes.add('fx-state-' + state);
 				
 				this.pending = state === 'pending';
@@ -203,6 +204,12 @@ export function form_component(app, container_id) {
 						});
 					} else {
 						this.set_flow_state('success');
+						
+						if (data.flux_disable === true) {
+							this.disabled = true;
+							this.$refs.form.classList.add('fx-state-disabled');
+						}
+						
 						events.emit('submit_success', data);
 					}
 				} catch (error) {
@@ -382,23 +389,8 @@ export function form_component(app, container_id) {
 				}
 			},
 
-			disable() {
-				this.disabled = true;
-				this.$refs.form.classList.add('fx-state-disabled');
-			},
-
-			enable() {
-				this.disabled = false;
-				this.$refs.form.classList.remove('fx-state-disabled');
-			}
 		}
 	});
 	
-	const component_instance = app.mount(`#${container_id}`);
-	
-	return {
-		events,
-		disable: () => component_instance.disable(),
-		enable: () => component_instance.enable()
-	};
+	return events;
 }

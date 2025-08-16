@@ -88,7 +88,7 @@ form_render_html(schema: FormSchema): string
 
 
 // client-side
-form_component(app: VueApp, form_id: string): { events: EventBus, disable: () => void, enable: () => void }
+form_component(app: VueApp, form_id: string): EventBus
 
 // server-side schema
 {
@@ -254,9 +254,9 @@ The `form_component` function returns an event bus which can be used to monitor 
 
 ```ts
 const test_form = form_component(app, 'my_form');
-test_form.events.on('submit_pending', () => {});
-test_form.events.on('submit_success', () => {});
-test_form.events.on('submit_failure', () => {});
+test_form.on('submit_pending', () => {});
+test_form.on('submit_success', () => {});
+test_form.on('submit_failure', () => {});
 ```
 
 ### 🟠 submit_pending
@@ -280,7 +280,7 @@ server.json('/api/submit-form', (req, url, json) => {
 });
 
 // client
-test_form.events.on('submit_success', data => {
+test_form.on('submit_success', data => {
 	console.log(data.foobar); // > 42
 });
 ```
@@ -292,7 +292,7 @@ This event is fired when an error occurs anywhere in the process between `submit
 All errors have the `.code` property which can be used to determine the origin of the error.
 
 ```ts
-test_form.events.on('submit_failure', e => {
+test_form.on('submit_failure', e => {
 	console.log(e.code); // client_side_validation_error
 });
 ```
@@ -314,32 +314,34 @@ These default messages can be overridden using the form schema's `errors` proper
 
 In the event of both `client_side_validation_error` and `form_error`, specific field errors will be automatically propgated to the component to render a relevant error message.
 
-## Form Control
+## Server-Side Form Disable
 
-The `form_component` function returns an object with both the event bus and control methods for manually managing form state.
+Forms can be permanently disabled by the server after successful submission by including `flux_disable: true` in the response:
 
 ```ts
-const form = form_component(app, 'register_form');
+// Server endpoint
+server.json('/api/register', async (req, url, json) => {
+    const form = form_validate_req(schema_register, json);
+    if (form.error)
+        return form;
 
-// Disable the form (prevents submission)
-form.disable();
-
-// Re-enable the form
-form.enable();
-
-// Example: disable form after successful registration
-form.events.on('submit_success', () => {
-	form.disable(); // Prevent further submissions
-	// Redirect user or show success message
+    // ... registration logic ...
+    
+    // Disable form to prevent resubmission
+    return { 
+        verify_token: token,
+        flux_disable: true 
+    };
 });
 ```
 
-When a form is disabled:
-- The `submit()` method will short-circuit and return early
-- The form receives the `fx-state-disabled` CSS class for styling
-- All form functionality is blocked until `enable()` is called
+When `flux_disable: true` is returned:
+- The form becomes permanently disabled until page reload
+- The submit method will short-circuit and return early
+- The form receives the `fx-state-disabled` CSS class
+- This is ideal for preventing duplicate submissions after successful operations
 
-This is particularly useful for scenarios like user registration where you want to prevent duplicate submissions after success.
+The disabled state persists until the page is reloaded, making it perfect for scenarios like user registration where you want to prevent multiple submissions.
 
 ## Event Flow Classes
 
@@ -350,7 +352,7 @@ In addition to events, a CSS class is also applied to the containing `<form>` de
 | fx-state-pending | The user submits the form, before any validation occurs. |
 | fx-state-error | The form is in an error state. |
 | fx-state-success | The form has successfully been submitted. |
-| fx-state-disabled | The form has been manually disabled. |
+| fx-state-disabled | The form has been disabled by the server via flux_disable flag. |
 
 > [!NOTE]
 > The fx-state-error is only applied when an error occurs during submission, not for immediate feedback field errors.
