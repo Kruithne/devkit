@@ -295,7 +295,7 @@ export function form_component(app, container_id) {
 				this.clear_state_error(state);
 				
 				const value = $input.value?.trim();
-				const input_type = $input.getAttribute('type');
+				const flux_type = $input.getAttribute('data-fx-type');
 				
 				// fields are required if fx-v-required is 'true' or undefined
 				const field_required = $field.getAttribute('fx-v-required') !== 'false';
@@ -306,7 +306,7 @@ export function form_component(app, container_id) {
 				if (!field_required && value.length === 0)
 					return;
 				
-				if (input_type === 'number') {
+				if (flux_type === 'number') {
 					const min = $field.getAttribute('fx-v-min');
 					const max = $field.getAttribute('fx-v-max');
 					
@@ -342,7 +342,7 @@ export function form_component(app, container_id) {
 					if (max_error)
 						return this.validation_error('text_too_large', field_id, { max });
 
-					if (input_type === 'email' && !email_regex.test(value))
+					if (flux_type === 'email' && !email_regex.test(value))
 						return this.validation_error('invalid_email', field_id);
 
 					const regex = $field.getAttribute('fx-v-regex');

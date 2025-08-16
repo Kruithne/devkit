@@ -352,6 +352,7 @@ export function form_render_html(schema: FormSchema): string {
 			.attr('tabindex', global_tab_index.toString())
 			.attr('@blur', `handle_field_blur('${unique_field_id}')`)
 			.attr('@input', `handle_field_input('${unique_field_id}')`)
+			.attr('data-fx-type', field.type)
 			.cls('fx-input', `fx-input-${field.type}`);
 
 		global_tab_index++;
