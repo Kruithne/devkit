@@ -116,6 +116,11 @@ form_component(app: VueApp, form_id: string): EventBus
 			type: 'number';
 			min?: number;
 			max?: number;
+		},
+
+		query_param_field: {
+			type: 'query_param';
+			regex?: string;
 		}
 	},
 
@@ -342,6 +347,37 @@ When `flux_disable: true` is returned:
 - This is ideal for preventing duplicate submissions after successful operations
 
 The disabled state persists until the page is reloaded, making it perfect for scenarios like user registration where you want to prevent multiple submissions.
+
+## Query Parameter Fields
+
+Query parameter fields allow forms to automatically capture and validate URL query parameters. This is useful for scenarios like password reset tokens, verification codes, or pre-filled form data from URLs.
+
+```ts
+const password_reset_form = form_create_schema({
+	id: 'reset_password',
+	endpoint: '/api/reset-password',
+	
+	fields: {
+		token: {
+			type: 'query_param',
+			required: true,
+			regex: '^[a-f0-9]{32}$' // 32-character hex token
+		},
+		
+		new_password: {
+			type: 'password',
+			label: 'New password:',
+			min_length: 8
+		},
+		
+		confirm_password: {
+			type: 'password',
+			match_field: 'new_password',
+			label: 'Confirm password:'
+		}
+	}
+});
+```
 
 ## Event Flow Classes
 

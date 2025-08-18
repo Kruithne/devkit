@@ -46,6 +46,9 @@ type FormField = FormFieldBase & ({
 	min_length?: number;
 	max_length?: number;
 	regex?: string;
+} | {
+	type: 'query_param';
+	regex?: string;
 });
 
 type InferFieldType<T extends FormField> = T extends { type: 'number' } ? number : string;
@@ -178,6 +181,18 @@ export function form_validate_req<T extends FormSchema>(
 			}
 
 			validated_fields[field_id] = num_value;
+		} else if (field.type === 'query_param') {
+			const str_value = String(value).trim();
+
+			if (field.regex !== undefined) {
+				const regex = new RegExp(field.regex);
+				if (!regex.test(str_value)) {
+					field_errors[uid] = 'regex_validation';
+					continue;
+				}
+			}
+
+			validated_fields[field_id] = str_value;
 		} else {
 			const str_value = String(value).trim();
 
@@ -300,6 +315,26 @@ export function form_render_html(schema: FormSchema): string {
 
 	for (const [field_id, field] of Object.entries(schema.fields)) {
 		const unique_field_id = `${schema.id}-${field_id}`;
+
+		if (field.type === 'query_param') {
+			const $hidden = $form.child('input')
+				.attr('type', 'hidden')
+				.attr('id', unique_field_id)
+				.attr('data-fx-type', 'query_param')
+				.attr('data-fx-query-param', field_id)
+				.attr('data-fx-field-id', unique_field_id)
+				.cls('fx-input', 'fx-input-query_param');
+
+			if (field.regex !== undefined)
+				$hidden.attr('fx-v-regex', field.regex);
+
+			if (field.required !== undefined)
+				$hidden.attr('fx-v-required', field.required.toString());
+
+			// custom per-field error messages
+			add_custom_errors($form, field.errors, unique_field_id);
+			continue;
+		}
 
 		// custom per-field error messages
 		add_custom_errors($form, field.errors, unique_field_id);

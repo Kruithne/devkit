@@ -85,12 +85,25 @@ export function form_component(app, container_id) {
 				};
 			}
 
+			const query_param_fields = $container.querySelectorAll('[data-fx-type="query_param"]');
+			for (const field of query_param_fields) {
+				state[field.getAttribute('data-fx-field-id')] = {
+					has_error: false,
+					error_code: '',
+					error: ''
+				};
+			}
+
 			return {
 				state,
 				pending: false,
 				disabled: false,
 				form_error_message: ''
 			};
+		},
+		
+		mounted() {
+			this.initialize_query_params();
 		},
 		
 		methods: {
@@ -154,7 +167,7 @@ export function form_component(app, container_id) {
 				
 				for (const field of fields) {
 					const field_id = field.getAttribute('data-fx-field-id');
-					const $input = field.querySelector('.fx-input');
+					const $input = field.querySelector('.fx-input') || $form.querySelector(`#${field_id}[data-fx-type="query_param"]`);
 					
 					if ($input)
 						form_data_fields[field_id] = $input.value;
@@ -300,9 +313,9 @@ export function form_component(app, container_id) {
 			},
 			
 			validate_field($field, field_id) {
-				const $input = $field.querySelector('.fx-input');
+				const $input = $field?.querySelector('.fx-input') || this.$refs.form.querySelector(`#${field_id}[data-fx-type="query_param"]`);
 				
-				if (!$field || !$input)
+				if (!$input)
 					return;
 				
 				const state = this.state[field_id];
@@ -313,6 +326,30 @@ export function form_component(app, container_id) {
 				
 				const value = $input.value?.trim();
 				const flux_type = $input.getAttribute('data-fx-type');
+				
+				if (flux_type === 'query_param') {
+					const field_required = $input.getAttribute('fx-v-required') !== 'false';
+					if (field_required && (!value || value.length === 0)) {
+						this.validation_error('required', field_id);
+						this.form_error_message = this.resolve_error_message('required');
+						return;
+					}
+					
+					if (!field_required && (!value || value.length === 0))
+						return;
+					
+					const regex = $input.getAttribute('fx-v-regex');
+					if (regex !== null) {
+						const regex_pattern = new RegExp(regex);
+
+						if (!regex_pattern.test(value)) {
+							this.validation_error('regex_validation', field_id);
+							this.form_error_message = this.resolve_error_message('regex_validation');
+							return;
+						}
+					}
+					return;
+				}
 				
 				// fields are required if fx-v-required is 'true' or undefined
 				const field_required = $field.getAttribute('fx-v-required') !== 'false';
@@ -403,6 +440,19 @@ export function form_component(app, container_id) {
 					const other_state = this.state[other_field_id];
 					if (other_state?.error_code == 'field_match_error')
 						this.clear_state_error(other_state);
+				}
+			},
+
+			initialize_query_params() {
+				const params = new URLSearchParams(window.location.search);
+				const query_param_fields = this.$refs.form.querySelectorAll('[data-fx-type="query_param"]');
+				
+				for (const field of query_param_fields) {
+					const param_name = field.getAttribute('data-fx-query-param');
+					const param_value = params.get(param_name);
+					
+					if (param_value !== null)
+						field.value = param_value;
 				}
 			},
 
