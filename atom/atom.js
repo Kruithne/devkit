@@ -8,8 +8,27 @@ const should_skip_child = (element) => {
 	return element.closest('[data-for]') && !element.getAttribute('data-atom-generated');
 };
 
+const parse_method_call = (expression) => {
+	const match = expression.match(/^(\w+)\s*\((.*)\)$/);
+	if (match) {
+		const [, methodName, argsString] = match;
+		const args = argsString.trim() ? argsString.split(',').map(arg => arg.trim()) : [];
+		return { methodName, args };
+	}
+	return { methodName: expression, args: [] };
+};
+
 const evaluate_expression = (proxy, expression, context = null) => {
 	const state = context ? { ...proxy, ...context } : proxy;
+	
+	if (expression.startsWith("'") && expression.endsWith("'"))
+		return expression.slice(1, -1);
+
+	if (expression.startsWith('"') && expression.endsWith('"'))
+		return expression.slice(1, -1);
+	
+	if (/^-?\d+(\.\d+)?$/.test(expression))
+		return parseFloat(expression);
 	
 	if (!/[<>=!&|+\-*/\s()]/.test(expression))
 		return get_nested_value(state, expression);
@@ -62,6 +81,26 @@ const apply_bindings = (proxy, element, context = null) => {
 	} else if (element.hasAttribute('data-else-if')) {
 		const shouldShow = Boolean(evaluate_expression(proxy, element.dataset.elseIf, context));
 		element.style.display = shouldShow ? '' : 'none';
+	}
+	
+	// Event binding
+	for (const attr of element.attributes) {
+		if (attr.name.startsWith('data-on-')) {
+			const eventName = attr.name.slice(8);
+			const expression = attr.value;
+			const { methodName, args } = parse_method_call(expression);
+
+			element.addEventListener(eventName, (e) => {
+				if (typeof proxy[methodName] === 'function') {
+					if (args.length > 0) {
+						const evaluatedArgs = args.map(arg => evaluate_expression(proxy, arg, context));
+						proxy[methodName](e, ...evaluatedArgs);
+					} else {
+						proxy[methodName](e);
+					}
+				}
+			});
+		}
 	}
 };
 
@@ -289,11 +328,17 @@ export function atom(target, root_proxy = null) {
 				for (const attr of $el.attributes) {
 					if (attr.name.startsWith('data-on-')) {
 						const eventName = attr.name.slice(8);
-						const methodName = attr.value;
+						const expression = attr.value;
+						const { methodName, args } = parse_method_call(expression);
 
 						$el.addEventListener(eventName, (e) => {
 							if (typeof proxy[methodName] === 'function') {
-								proxy[methodName](e);
+								if (args.length > 0) {
+									const evaluatedArgs = args.map(arg => evaluate_expression(proxy, arg));
+									proxy[methodName](e, ...evaluatedArgs);
+								} else {
+									proxy[methodName](e);
+								}
 							}
 						});
 					}

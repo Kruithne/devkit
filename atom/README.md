@@ -11,7 +11,7 @@
 - **🧮 Expression Support** - Evaluates JavaScript expressions like `count > 10`, `user.age >= 18`
 - **🔁 List Rendering** - Dynamic lists with `data-for="item:array"`
 - **⌨️ Input Binding** - Two-way data binding with `data-model="path"`
-- **🖱️ Event Binding** - Method calls with `data-on-*="methodName"`
+- **🖱️ Event Binding** - Method calls with `data-on-*="methodName"` or `data-on-*="methodName(args)"`
 - **👀 Watchers** - Side effects with `state.watch(path, callback)`
 - **🔄 Computed Properties** - Reactive getters that auto-update
 - **🏗️ Nested Objects** - Deep reactivity for complex state
@@ -57,6 +57,15 @@ const state = atom({
 	},
 	addTodo(title) {
 		this.todos.push({ title, completed: false });
+	},
+	
+	// parameterized event handlers
+	selectColor(event, color) {
+		this.selectedColor = color;
+	},
+	
+	addToCart(event, productId, name, price) {
+		this.cart.push({ id: productId, name, price });
 	}
 });
 
@@ -145,9 +154,22 @@ state.user.name = 'Bob';
 
 ### Event Binding
 ```html
+<!-- Basic event binding -->
 <button data-on-click="increment">Click me</button>
 <form data-on-submit="handleSubmit">
 <input data-on-keyup="handleKeyup">
+
+<!-- Parameterized event binding -->
+<button data-on-click="selectColor('red')">Red</button>
+<button data-on-click="addItem(item.id, item.name)">Add Item</button>
+<button data-on-click="calculate('multiply', 5)">×5</button>
+
+<!-- In lists with item context -->
+<div data-for="product:products">
+  <button data-on-click="addToCart(product.id, product.name, product.price)">
+    Add to Cart
+  </button>
+</div>
 ```
 
 ### Watchers
