@@ -42,6 +42,13 @@ const evaluate_expression = (proxy, expression, context = null) => {
 	}
 };
 
+const get_or_create_class_tracker = (element) => {
+	if (!element._atomClassTracker) {
+		element._atomClassTracker = new Map();
+	}
+	return element._atomClassTracker;
+};
+
 const apply_bindings = (proxy, element, context = null) => {
 	// Text binding
 	if (element.hasAttribute('data-text')) {
@@ -53,14 +60,40 @@ const apply_bindings = (proxy, element, context = null) => {
 	// Class binding
 	if (element.hasAttribute('data-class')) {
 		const bindings = element.dataset.class.split(',');
-		for (const binding of bindings) {
-			const [statePath, className] = binding.split(':');
-			const value = evaluate_expression(proxy, statePath.trim(), context);
+		const classTracker = get_or_create_class_tracker(element);
+		
+		for (let i = 0; i < bindings.length; i++) {
+			const binding = bindings[i];
+			const bindingKey = `binding-${i}`;
+			
+			if (binding.includes(':') && !binding.includes('?')) {
+				const [statePath, className] = binding.split(':');
+				const value = evaluate_expression(proxy, statePath.trim(), context);
+				const cleanClassName = className.trim();
 
-			if (value)
-				element.classList.add(className.trim());
-			else
-				element.classList.remove(className.trim());
+				if (value) {
+					element.classList.add(cleanClassName);
+					classTracker.set(bindingKey, [cleanClassName]);
+				} else {
+					element.classList.remove(cleanClassName);
+					classTracker.delete(bindingKey);
+				}
+			} else {
+				const previousClasses = classTracker.get(bindingKey) || [];
+				for (const cls of previousClasses)
+					element.classList.remove(cls);
+				
+				const result = evaluate_expression(proxy, binding.trim(), context);
+				if (result && typeof result === 'string') {
+					const classNames = result.split(/\s+/).filter(cls => cls);
+					for (const cls of classNames)
+						element.classList.add(cls);
+
+					classTracker.set(bindingKey, classNames);
+				} else {
+					classTracker.delete(bindingKey);
+				}
+			}
 		}
 	}
 	
@@ -179,14 +212,41 @@ export function atom(target, root_proxy = null) {
 				continue;
 
 			const bindings = $el.dataset.class.split(',');
-			for (const binding of bindings) {
-				const [statePath, className] = binding.split(':');
-				const value = evaluate_expression(proxy, statePath.trim());
-	
-				if (value)
-					$el.classList.add(className.trim());
-				else
-					$el.classList.remove(className.trim());
+			const classTracker = get_or_create_class_tracker($el);
+			
+			for (let i = 0; i < bindings.length; i++) {
+				const binding = bindings[i];
+				const bindingKey = `binding-${i}`;
+				
+				if (binding.includes(':') && !binding.includes('?')) {
+					const [statePath, className] = binding.split(':');
+					const value = evaluate_expression(proxy, statePath.trim());
+					const cleanClassName = className.trim();
+		
+					if (value) {
+						$el.classList.add(cleanClassName);
+						classTracker.set(bindingKey, [cleanClassName]);
+					} else {
+						$el.classList.remove(cleanClassName);
+						classTracker.delete(bindingKey);
+					}
+				} else {
+					const previousClasses = classTracker.get(bindingKey) || [];
+					for (const cls of previousClasses) {
+						$el.classList.remove(cls);
+					}
+					
+					const result = evaluate_expression(proxy, binding.trim());
+					if (result && typeof result === 'string') {
+						const classNames = result.split(/\s+/).filter(cls => cls);
+						for (const cls of classNames) {
+							$el.classList.add(cls);
+						}
+						classTracker.set(bindingKey, classNames);
+					} else {
+						classTracker.delete(bindingKey);
+					}
+				}
 			}
 		}
 
