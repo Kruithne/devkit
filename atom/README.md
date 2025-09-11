@@ -11,8 +11,14 @@ const state = atom({
     count: 0,
     message: 'Hello',
     isActive: false,
+
+	// nested reactive objects
     user: { name: 'Alice' },
-    get doubled() { return this.count * 2; }
+
+	// computed properties
+    get doubled() {
+		return this.count * 2;
+	}
 });
 
 // attach to a DOM container (optional)
