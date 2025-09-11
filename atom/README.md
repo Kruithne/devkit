@@ -9,6 +9,7 @@
 - **🔗 Attribute Binding** - Dynamic HTML attributes with `data-attr-*="path"`
 - **🔀 Conditional Rendering** - if/else-if/else logic with `data-if`, `data-else-if`, `data-else`
 - **🧮 Expression Support** - Evaluates JavaScript expressions like `count > 10`, `user.age >= 18`
+- **🔁 List Rendering** - Dynamic lists with `data-for="item:array"`
 - **⌨️ Input Binding** - Two-way data binding with `data-model="path"`
 - **🖱️ Event Binding** - Method calls with `data-on-*="methodName"`
 - **👀 Watchers** - Side effects with `state.watch(path, callback)`
@@ -36,6 +37,12 @@ const state = atom({
 	// nested reactive objects
     user: { name: 'Alice', avatar: '/avatar.jpg' },
 
+	// arrays for list rendering
+	todos: [
+		{ title: 'Learn Atom.js', completed: true },
+		{ title: 'Build something awesome', completed: false }
+	],
+
 	// computed properties
     get doubled() {
 		return this.count * 2;
@@ -47,6 +54,9 @@ const state = atom({
 	},
 	toggleActive() {
 		this.isActive = !this.isActive;
+	},
+	addTodo(title) {
+		this.todos.push({ title, completed: false });
 	}
 });
 
@@ -103,6 +113,27 @@ state.user.name = 'Bob';
 <div data-if="count > 10">High score!</div>
 <div data-else-if="count > 0">Getting there...</div>
 <div data-else>Try again</div>
+```
+
+### List Rendering
+```html
+<!-- Basic list -->
+<div data-for="item:items" data-text="item.name"></div>
+
+<!-- Complex list with nested bindings -->
+<li data-for="todo:todos">
+  <span data-text="todo.title"></span>
+  <div data-if="todo.completed">✅ Done</div>
+  <div data-else>⏳ In Progress</div>
+</li>
+
+<!-- Access to index -->
+<div data-for="user:users">
+  <span data-text="$index + 1"></span>. <span data-text="user.name"></span>
+</div>
+
+<!-- With expressions -->
+<div data-for="item:filteredItems" data-text="item.name + ' (' + item.count + ')'"></div>
 ```
 
 ### Input Binding (Two-way)

@@ -4,16 +4,64 @@ const get_nested_value = (obj, path) => {
 	}, obj);
 };
 
-const evaluate_expression = (proxy, expression) => {
+const should_skip_child = (element) => {
+	return element.closest('[data-for]') && !element.getAttribute('data-atom-generated');
+};
+
+const evaluate_expression = (proxy, expression, context = null) => {
+	const state = context ? { ...proxy, ...context } : proxy;
+	
 	if (!/[<>=!&|+\-*/\s()]/.test(expression))
-		return get_nested_value(proxy, expression);
+		return get_nested_value(state, expression);
 	
 	try {
 		const func = new Function('state', `with(state) { return ${expression}; }`);
-		return func(proxy);
+		return func(state);
 	} catch (e) {
 		console.warn('Expression evaluation failed:', expression, e);
 		return false;
+	}
+};
+
+const apply_bindings = (proxy, element, context = null) => {
+	// Text binding
+	if (element.hasAttribute('data-text')) {
+		const path = element.dataset.text;
+		const value = evaluate_expression(proxy, path, context);
+		element.textContent = value;
+	}
+	
+	// Class binding
+	if (element.hasAttribute('data-class')) {
+		const bindings = element.dataset.class.split(',');
+		for (const binding of bindings) {
+			const [statePath, className] = binding.split(':');
+			const value = evaluate_expression(proxy, statePath.trim(), context);
+
+			if (value)
+				element.classList.add(className.trim());
+			else
+				element.classList.remove(className.trim());
+		}
+	}
+	
+	// Attribute binding
+	for (const attr of element.attributes) {
+		if (attr.name.startsWith('data-attr-')) {
+			const attrName = attr.name.slice(10);
+			const path = attr.value;
+			const value = evaluate_expression(proxy, path, context);
+			element.setAttribute(attrName, value);
+		}
+	}
+	
+	// Conditional rendering
+	if (element.hasAttribute('data-if')) {
+		const shouldShow = Boolean(evaluate_expression(proxy, element.dataset.if, context));
+		element.style.display = shouldShow ? '' : 'none';
+	} else if (element.hasAttribute('data-else-if')) {
+		const shouldShow = Boolean(evaluate_expression(proxy, element.dataset.elseIf, context));
+		element.style.display = shouldShow ? '' : 'none';
 	}
 };
 
@@ -31,13 +79,66 @@ export function atom(target, root_proxy = null) {
 		if (!container)
 			return;
 
-		for (const $el of container.querySelectorAll('[data-text]')) {
+		// List rendering
+		for (const $template of container.querySelectorAll('[data-for]')) {
+			if ($template.getAttribute('data-atom-generated'))
+				continue;
+			
+			const forExpression = $template.dataset.for;
+			const [itemName, arrayPath] = forExpression.split(':');
+			
+			if (!itemName || !arrayPath) {
+				console.warn('Invalid data-for syntax. Expected "item:array":', forExpression);
+				continue;
+			}
+
+			const array = evaluate_expression(proxy, arrayPath);
+			
+			if (!Array.isArray(array))
+				continue;
+			
+			let sibling = $template.nextSibling;
+			while (sibling && sibling.getAttribute?.('data-atom-generated') === 'true') {
+				const nextSibling = sibling.nextSibling;
+				sibling.remove();
+				sibling = nextSibling;
+			}
+			
+			$template.style.display = 'none';
+			
+			for (let i = 0; i < array.length; i++) {
+				const item = array[i];
+				const clone = $template.cloneNode(true);
+				clone.removeAttribute('data-for');
+				clone.setAttribute('data-atom-generated', 'true');
+				clone.dataset.atomIndex = i;
+				clone.style.display = '';
+				
+				const context = { [itemName]: item, $index: i };
+				
+				apply_bindings(proxy, clone, context);
+				for (const child of clone.querySelectorAll('*')) {
+					child.setAttribute('data-atom-generated', 'true');
+					apply_bindings(proxy, child, context);
+				}
+				
+				$template.parentNode.insertBefore(clone, $template.nextSibling);
+			}
+		}
+
+		for (const $el of container.querySelectorAll('[data-text]:not([data-atom-generated])')) {
+			if (should_skip_child($el))
+				continue;
+
 			const path = $el.dataset.text;
 			const value = evaluate_expression(proxy, path);
 			$el.textContent = value;
 		}
 
-		for (const $el of container.querySelectorAll('[data-class]')) {
+		for (const $el of container.querySelectorAll('[data-class]:not([data-atom-generated])')) {
+			if (should_skip_child($el))
+				continue;
+
 			const bindings = $el.dataset.class.split(',');
 			for (const binding of bindings) {
 				const [statePath, className] = binding.split(':');
@@ -50,7 +151,10 @@ export function atom(target, root_proxy = null) {
 			}
 		}
 
-		for (const $el of container.querySelectorAll('*')) {
+		for (const $el of container.querySelectorAll('*:not([data-atom-generated])')) {
+			if (should_skip_child($el))
+				continue;
+
 			for (const attr of $el.attributes) {
 				if (attr.name.startsWith('data-attr-')) {
 					const attrName = attr.name.slice(10);
@@ -62,8 +166,12 @@ export function atom(target, root_proxy = null) {
 		}
 
 		const processed = new Set();
-		for (const $if of container.querySelectorAll('[data-if]')) {
-			if (processed.has($if)) continue;
+		for (const $if of container.querySelectorAll('[data-if]:not([data-atom-generated])')) {
+			if (should_skip_child($if))
+				continue;
+
+			if (processed.has($if))
+				continue;
 			
 			const group = [$if];
 			let sibling = $if.nextElementSibling;
@@ -99,7 +207,10 @@ export function atom(target, root_proxy = null) {
 			}
 		}
 
-		for (const $el of container.querySelectorAll('[data-model]')) {
+		for (const $el of container.querySelectorAll('[data-model]:not([data-atom-generated])')) {
+			if (should_skip_child($el))
+				continue;
+
 			const path = $el.dataset.model;
 			const value = evaluate_expression(proxy, path);
 
@@ -153,7 +264,10 @@ export function atom(target, root_proxy = null) {
 		proxy.mount = (selector) => {
 			container = typeof selector === 'string' ? document.querySelector(selector) : selector;
 			
-			for (const $el of container.querySelectorAll('[data-model]')) {
+			for (const $el of container.querySelectorAll('[data-model]:not([data-atom-generated])')) {
+				if (should_skip_child($el))
+					continue;
+
 				const path = $el.dataset.model;
 				const eventType = $el.type === 'checkbox' ? 'change' : 'input';
 
@@ -168,7 +282,10 @@ export function atom(target, root_proxy = null) {
 				});
 			}
 			
-			for (const $el of container.querySelectorAll('*')) {
+			for (const $el of container.querySelectorAll('*:not([data-atom-generated])')) {
+				if (should_skip_child($el))
+					continue;
+				
 				for (const attr of $el.attributes) {
 					if (attr.name.startsWith('data-on-')) {
 						const eventName = attr.name.slice(8);
