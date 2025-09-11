@@ -16,6 +16,13 @@
 - **🏗️ Nested Objects** - Deep reactivity for complex state
 - **📦 Tiny Size** - Minimal footprint, maximum power
 
+## Why?
+When building smaller tools or projects, I find myself wanting to reach for reactive libraries such as Vue, but due to the nature of the project, pulling in a massive library is overkill.
+
+That's where `atom` comes in. It's tiny, so it can be embedded directly in small projects, and provides most of the features you'd expect from a reactive library.
+
+This is not a magical replacement for libraries like Vue. For large projects, especially where performance is key, they will still be the best choice.
+
 ## Usage
 
 ```javascript
