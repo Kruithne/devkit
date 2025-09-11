@@ -7,7 +7,8 @@
 - **📝 Text Binding** - Reactive text content with `data-text="path"`
 - **🎨 Class Binding** - Conditional CSS classes with `data-class="state:className"`
 - **🔗 Attribute Binding** - Dynamic HTML attributes with `data-attr-*="path"`
-- **👁️ Conditional Visibility** - Show/hide elements with `data-show="condition"`
+- **🔀 Conditional Rendering** - if/else-if/else logic with `data-if`, `data-else-if`, `data-else`
+- **🧮 Expression Support** - Evaluates JavaScript expressions like `count > 10`, `user.age >= 18`
 - **⌨️ Input Binding** - Two-way data binding with `data-model="path"`
 - **🖱️ Event Binding** - Method calls with `data-on-*="methodName"`
 - **👀 Watchers** - Side effects with `state.watch(path, callback)`
@@ -60,12 +61,21 @@ state.user.name = 'Bob';
 <span data-text="count"></span>
 <span data-text="user.name"></span>
 <span data-text="doubled"></span>
+
+<!-- Supports expressions -->
+<span data-text="count * 2"></span>
+<span data-text="user.name + '!'"></span>
+<span data-text="count > 5 ? 'High' : 'Low'"></span>
 ```
 
 ### Class Binding
 ```html
 <div data-class="isActive:active"></div>
 <div data-class="isActive:active,isHighlighted:highlight"></div>
+
+<!-- Supports expressions -->
+<div data-class="count > 5:high-score"></div>
+<div data-class="user.age >= 18:adult,count === 0:empty"></div>
 ```
 
 ### Attribute Binding
@@ -75,10 +85,17 @@ state.user.name = 'Bob';
 <div data-attr-class="theme.className">
 ```
 
-### Conditional Visibility
+### Conditional Rendering
 ```html
-<div data-show="isVisible">Only shown when isVisible is true</div>
-<span data-show="user.isLoggedIn">Welcome back!</span>
+<div data-if="user.isAdmin">Admin Panel</div>
+<div data-else-if="user.isModerator">Moderator Tools</div>
+<div data-else-if="user.isLoggedIn">Welcome back!</div>
+<div data-else>Please log in</div>
+
+<!-- Supports expressions -->
+<div data-if="count > 10">High score!</div>
+<div data-else-if="count > 0">Getting there...</div>
+<div data-else>Try again</div>
 ```
 
 ### Input Binding (Two-way)

@@ -4,6 +4,19 @@ const get_nested_value = (obj, path) => {
 	}, obj);
 };
 
+const evaluate_expression = (proxy, expression) => {
+	if (!/[<>=!&|+\-*/\s()]/.test(expression))
+		return get_nested_value(proxy, expression);
+	
+	try {
+		const func = new Function('state', `with(state) { return ${expression}; }`);
+		return func(proxy);
+	} catch (e) {
+		console.warn('Expression evaluation failed:', expression, e);
+		return false;
+	}
+};
+
 export function atom(target, root_proxy = null) {
 	const deps = new Map();
 	const watchers = new Map();
@@ -20,7 +33,7 @@ export function atom(target, root_proxy = null) {
 
 		for (const $el of container.querySelectorAll('[data-text]')) {
 			const path = $el.dataset.text;
-			const value = get_nested_value(proxy, path);
+			const value = evaluate_expression(proxy, path);
 			$el.textContent = value;
 		}
 
@@ -28,7 +41,7 @@ export function atom(target, root_proxy = null) {
 			const bindings = $el.dataset.class.split(',');
 			for (const binding of bindings) {
 				const [statePath, className] = binding.split(':');
-				const value = get_nested_value(proxy, statePath.trim());
+				const value = evaluate_expression(proxy, statePath.trim());
 	
 				if (value)
 					$el.classList.add(className.trim());
@@ -42,21 +55,53 @@ export function atom(target, root_proxy = null) {
 				if (attr.name.startsWith('data-attr-')) {
 					const attrName = attr.name.slice(10);
 					const path = attr.value;
-					const value = get_nested_value(proxy, path);
+					const value = evaluate_expression(proxy, path);
 					$el.setAttribute(attrName, value);
 				}
 			}
 		}
 
-		for (const $el of container.querySelectorAll('[data-show]')) {
-			const path = $el.dataset.show;
-			const value = get_nested_value(proxy, path);
-			$el.style.display = value ? '' : 'none';
+		const processed = new Set();
+		for (const $if of container.querySelectorAll('[data-if]')) {
+			if (processed.has($if)) continue;
+			
+			const group = [$if];
+			let sibling = $if.nextElementSibling;
+			
+			while (sibling && (sibling.hasAttribute('data-else-if') || sibling.hasAttribute('data-else'))) {
+				group.push(sibling);
+				processed.add(sibling);
+
+				if (sibling.hasAttribute('data-else'))
+					break;
+
+				sibling = sibling.nextElementSibling;
+			}
+			
+			processed.add($if);
+			
+			let shown = false;
+			for (const el of group) {
+				let shouldShow = false;
+				
+				if (!shown) {
+					if (el.hasAttribute('data-if')) {
+						shouldShow = Boolean(evaluate_expression(proxy, el.dataset.if));
+					} else if (el.hasAttribute('data-else-if')) {
+						shouldShow = Boolean(evaluate_expression(proxy, el.dataset.elseIf));
+					} else if (el.hasAttribute('data-else')) {
+						shouldShow = true;
+					}
+				}
+				
+				el.style.display = shouldShow ? '' : 'none';
+				if (shouldShow) shown = true;
+			}
 		}
 
 		for (const $el of container.querySelectorAll('[data-model]')) {
 			const path = $el.dataset.model;
-			const value = get_nested_value(proxy, path);
+			const value = evaluate_expression(proxy, path);
 
 			if ($el.type === 'checkbox')
 				$el.checked = Boolean(value);
@@ -128,7 +173,7 @@ export function atom(target, root_proxy = null) {
 					if (attr.name.startsWith('data-on-')) {
 						const eventName = attr.name.slice(8);
 						const methodName = attr.value;
-						
+
 						$el.addEventListener(eventName, (e) => {
 							if (typeof proxy[methodName] === 'function') {
 								proxy[methodName](e);
